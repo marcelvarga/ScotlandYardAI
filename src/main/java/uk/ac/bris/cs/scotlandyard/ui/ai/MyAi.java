@@ -2,7 +2,6 @@ package uk.ac.bris.cs.scotlandyard.ui.ai;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nonnull;
 
@@ -12,7 +11,7 @@ import uk.ac.bris.cs.scotlandyard.model.Ai;
 import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 
-public class Moriarty implements Ai {
+public class MyAi implements Ai {
 
 	@Nonnull @Override public String name() { return "Moriarty"; }
 
@@ -22,7 +21,7 @@ public class Moriarty implements Ai {
 		// returns a random move, replace with your own implementation
 		// Testing
 		var moves = board.getAvailableMoves().asList();
-
+		Dijkstra dijkstra = new Dijkstra(board);
 		return moves.get(new Random().nextInt(moves.size()));
 	}
 }
