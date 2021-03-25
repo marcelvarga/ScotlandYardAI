@@ -27,8 +27,8 @@ public class Dijkstra {
 
         detectiveLocations = getDetectiveLocations(pieces, board);
 
+        //Generate a priority queue that stores detective locations, and their distance "travelled"
         this.pQueue = new PriorityQueue<>();
-
         for(int location : detectiveLocations){
             distTo.set(location, 0);
             pQueue.add(new Node(location, 0));
