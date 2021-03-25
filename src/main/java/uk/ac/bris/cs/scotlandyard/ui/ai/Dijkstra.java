@@ -6,6 +6,7 @@ import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Transport;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -24,13 +25,8 @@ public class Dijkstra {
         pieces = new ArrayList<>();
         this.pieces.addAll(board.getPlayers());
 
-        detectiveLocations = new ArrayList<>();
+        detectiveLocations = getDetectiveLocations(pieces, board);
 
-        for (Piece piece : pieces)
-            if(piece.isDetective()){
-            Optional<Integer> location = board.getDetectiveLocation((Piece.Detective) piece);
-                location.ifPresent(integer -> detectiveLocations.add(integer));
-        }
         this.pQueue = new PriorityQueue<>();
 
         for(int location : detectiveLocations){
@@ -51,9 +47,20 @@ public class Dijkstra {
                 }
             }
         }
-        }
+    }
 
     public ArrayList<Integer> getDistTo() {
         return distTo;
+    }
+
+    public ArrayList<Integer> getDetectiveLocations(ArrayList<Piece> pieces, Board board) {
+        detectiveLocations = new ArrayList<>();
+
+        for (Piece piece : pieces)
+            if(piece.isDetective()){
+                Optional<Integer> location = board.getDetectiveLocation((Piece.Detective) piece);
+                location.ifPresent(integer -> detectiveLocations.add(integer));
+            }
+        return detectiveLocations;
     }
 }
