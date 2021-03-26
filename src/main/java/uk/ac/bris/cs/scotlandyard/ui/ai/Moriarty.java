@@ -7,11 +7,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
-import com.google.common.collect.ImmutableSet;
 import io.atlassian.fugue.Pair;
 import uk.ac.bris.cs.scotlandyard.model.*;
 import uk.ac.bris.cs.scotlandyard.model.Board;
-import uk.ac.bris.cs.scotlandyard.model.Piece;
 
 public class Moriarty implements Ai {
 
@@ -29,21 +27,21 @@ public class Moriarty implements Ai {
 
 		//Generate a root node
 		//Most parameters are irrelevant
-		scoreNode tree = new scoreNode(mrXLocation, null, null, 0, board);
+		ScoreNode tree = new ScoreNode(mrXLocation, null, null, 0, board);
 		for (Move m:moves) {
 			//Moves with a score of zero are losses
 			if (moveScore(board, m) != 0)
-			tree.addChild(new scoreNode(m.source(), tree, m, moveScore(board, m), doMove(board, m)));
+			tree.addChild(new ScoreNode(m.source(), tree, m, moveScore(board, m), doMove(board, m)));
 		}
 
 		//Iterate through the tree to find the best outcome
 		//Create dummy bestNode so the first node found is the bestNode
-		scoreNode bestNode = new scoreNode(0, null, null, -1, null);
+		ScoreNode bestNode = new ScoreNode(0, null, null, -1, null);
 
-		PriorityQueue<scoreNode> queue = new PriorityQueue<scoreNode>();
+		PriorityQueue<ScoreNode> queue = new PriorityQueue<>();
 		queue.add(tree);
 		while (!queue.isEmpty()) {
-			scoreNode node = queue.poll();
+			ScoreNode node = queue.poll();
 			if (node.isChildFree() && (node.getScore() > bestNode.getScore())) {
 				bestNode = node;
 			}

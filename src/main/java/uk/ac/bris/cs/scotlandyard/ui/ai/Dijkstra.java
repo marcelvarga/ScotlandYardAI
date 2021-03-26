@@ -6,7 +6,6 @@ import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Transport;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 @SuppressWarnings("UnstableApiUsage")
