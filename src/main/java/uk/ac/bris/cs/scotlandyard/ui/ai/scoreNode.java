@@ -1,5 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
+import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 
 import java.util.ArrayList;
@@ -10,13 +11,15 @@ public class scoreNode{
     final private Move move;
     final private int location;
     final private int score;
+    final private Board board;
 
     //If no parent exists (initiator), parent = null
-    public scoreNode(int location, scoreNode parent, Move move, int score) {
+    public scoreNode(int location, scoreNode parent, Move move, int score, Board board) {
         this.location = location;
         this.parent = parent;
         this.move = move;
         this.score = score;
+        this.board = board;
     }
 
     public int getLocation() {
