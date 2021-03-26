@@ -11,20 +11,46 @@ import java.util.*;
 @SuppressWarnings("UnstableApiUsage")
 
 public class Dijkstra {
+
+    private class Node implements Comparable<Node> {
+        private final int location;
+        private final int distance;
+
+        Node(int location, int distance){
+            this.location = location;
+            this.distance = distance;
+        }
+
+        @Override
+        public int compareTo(Node o) {
+            return this.distance - o.distance;
+        }
+
+        public int getDistance() {
+            return distance;
+        }
+
+        public int getLocation() {
+            return location;
+        }
+    }
+
     ArrayList<Integer> distTo;
-    public ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph;
+    ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph;
     ArrayList<Piece> pieces;
     ArrayList<Integer> detectiveLocations;
+    int mrXLocation;
     PriorityQueue<Node> pQueue;
+    Board board;
 
-    Dijkstra(Board board){
+    Dijkstra(Board board, Integer mrXLocation){
         distTo = new ArrayList<>(Collections.nCopies(200, 1000));
-
+        this.board = board;
         this.graph = board.getSetup().graph;
         pieces = new ArrayList<>();
         this.pieces.addAll(board.getPlayers());
-
-        detectiveLocations = getDetectiveLocations(pieces, board);
+        this.mrXLocation = mrXLocation;
+        detectiveLocations = getDetectiveLocations();
 
         //Generate a priority queue that stores detective locations, and their distance "travelled"
         this.pQueue = new PriorityQueue<>();
@@ -48,11 +74,10 @@ public class Dijkstra {
         }
     }
 
-    public ArrayList<Integer> getDistTo() {
-        return distTo;
-    }
+    public ArrayList<Integer> getDistTo() { return distTo; }
+    public Integer getDistToMrX() { return distTo.get(mrXLocation); }
 
-    public ArrayList<Integer> getDetectiveLocations(ArrayList<Piece> pieces, Board board) {
+    private ArrayList<Integer> getDetectiveLocations() {
         detectiveLocations = new ArrayList<>();
 
         for (Piece piece : pieces)
