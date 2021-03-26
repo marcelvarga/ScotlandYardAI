@@ -5,16 +5,16 @@ import uk.ac.bris.cs.scotlandyard.model.Move;
 
 import java.util.ArrayList;
 
-public class scoreNode{
-    private scoreNode parent;
-    private ArrayList<scoreNode> children;
+public class ScoreNode {
+    private ScoreNode parent;
+    private ArrayList<ScoreNode> children;
     final private Move move;
     final private int location;
     final private int score;
     final private Board board;
 
     //If no parent exists (initiator), parent = null
-    public scoreNode(int location, scoreNode parent, Move move, int score, Board board) {
+    public ScoreNode(int location, ScoreNode parent, Move move, int score, Board board) {
         this.location = location;
         this.parent = parent;
         this.move = move;
@@ -26,11 +26,11 @@ public class scoreNode{
         return this.location;
     }
 
-    public ArrayList<scoreNode> getChildren() {
+    public ArrayList<ScoreNode> getChildren() {
         return children;
     }
 
-    public void addChild(scoreNode child) {
+    public void addChild(ScoreNode child) {
         child.setParent(this);
         this.children.add(child);
     }
@@ -47,7 +47,7 @@ public class scoreNode{
         this.children.clear();
     }
 
-    public void setParent(scoreNode node) {
+    public void setParent(ScoreNode node) {
         this.parent = node;
     }
 
