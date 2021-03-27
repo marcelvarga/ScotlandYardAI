@@ -35,13 +35,13 @@ public class Dijkstra {
         }
     }
 
-    ArrayList<Integer> distTo;
-    ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph;
-    ArrayList<Piece> pieces;
-    ArrayList<Integer> detectiveLocations;
-    int mrXLocation;
-    PriorityQueue<Node> pQueue;
-    Board board;
+    private ArrayList<Integer> distTo;
+    private ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph;
+    private ArrayList<Piece> pieces;
+    private ArrayList<Integer> detectiveLocations;
+    private int mrXLocation;
+    private PriorityQueue<Node> pQueue;
+    private Board board;
 
     Dijkstra(Board board, Integer mrXLocation){
         distTo = new ArrayList<>(Collections.nCopies(200, 1000));
