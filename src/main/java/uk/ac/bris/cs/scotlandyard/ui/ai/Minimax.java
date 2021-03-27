@@ -34,6 +34,7 @@ public class Minimax {
     int mrXInitialLocation;
     final int minusInfinity = -10000;
     final int plusInfinity  = +10000;
+    Move bestMove;
 
     Minimax(Board.GameState gameState, int steps, int mrXInitialLocation){
         this.gameState = gameState;
@@ -42,38 +43,36 @@ public class Minimax {
 
     }
 
-    Pair searchBestMove(Board.GameState state, int depth, boolean isMrX, int mrXLocation, Move move){
+    int searchBestScore(Board.GameState state, int depth, boolean isMrX, int mrXLocation){
         if (depth == 0 || !state.getWinner().isEmpty())
-            return new Pair(move, score(state, mrXLocation));
+            return score(state, mrXLocation);
 
         if(isMrX) {
-            Pair maxEval = new Pair(null, minusInfinity);
-            for(Move availableMove : state.getAvailableMoves()) {
-                Pair eval = searchBestMove(
-                        state.advance(availableMove),
+            int maxEval = minusInfinity;
+            for(Move currMove : state.getAvailableMoves())
+                if(currMove.visit(new Move.FunctionalVisitor<>(m -> true, m -> true))){
+                int eval = searchBestScore(
+                        state.advance(currMove),
                         depth - 1,
                         false,
-                        availableMove.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)),
-                        availableMove);
-                if(maxEval.getScore() < eval.getScore()) {
-                    maxEval.setScore(eval.getScore());
-                    maxEval.setMove(eval.getMove());
+                        getDest(currMove));
+                if(maxEval < eval) {
+                    maxEval = eval;
+                    bestMove = currMove;
                 }
             }
             return maxEval;
         }
         else {
-            Pair minEval = new Pair(null, plusInfinity);
-            for(Move availableMove : state.getAvailableMoves()) {
-                Pair eval = searchBestMove(
-                        state.advance(availableMove),
+            int minEval = plusInfinity;
+            for (Move currMove : state.getAvailableMoves()){
+                int eval = searchBestScore(
+                        state.advance(currMove),
                         depth - 1,
                         true,
-                        mrXLocation,
-                        availableMove);
-                if(minEval.getScore() >= eval.getScore()) {
-                    minEval.setScore(eval.getScore());
-                    minEval.setMove(eval.getMove());
+                        mrXLocation);
+                if (minEval >= eval) {
+                    minEval = eval;
                 }
             }
             return minEval;
@@ -83,12 +82,14 @@ public class Minimax {
 
     private int score(Board.GameState state, int mrXLocation){
 
-        if(!state.getAvailableMoves().isEmpty() && state.getAvailableMoves().asList().get(0).commencedBy().isDetective())
-            return (new Dijkstra(state, mrXLocation).getDistToMrX());
-        return minusInfinity;
+        return (new Dijkstra(state, mrXLocation).getDistToMrX()) + state.getAvailableMoves().size();
     }
+
     public Move getBestMove(){
-        Pair bestMove = searchBestMove(gameState, steps, true, mrXInitialLocation, null);
-        return bestMove.getMove();
+        searchBestScore(gameState, 2, true, mrXInitialLocation);
+        return bestMove;
+    }
+    private int getDest(Move move) {
+        return move.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2));
     }
 }
