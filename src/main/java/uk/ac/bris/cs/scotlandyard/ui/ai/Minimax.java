@@ -71,7 +71,7 @@ public class Minimax {
                         true,
                         mrXLocation,
                         availableMove);
-                if(minEval.getScore() > eval.getScore()) {
+                if(minEval.getScore() >= eval.getScore()) {
                     minEval.setScore(eval.getScore());
                     minEval.setMove(eval.getMove());
                 }
@@ -82,7 +82,10 @@ public class Minimax {
 
 
     private int score(Board.GameState state, int mrXLocation){
-        return (new Dijkstra(state, mrXLocation).getDistToMrX());
+
+        if(!state.getAvailableMoves().isEmpty() && state.getAvailableMoves().asList().get(0).commencedBy().isDetective())
+            return (new Dijkstra(state, mrXLocation).getDistToMrX());
+        return minusInfinity;
     }
     public Move getBestMove(){
         Pair bestMove = searchBestMove(gameState, steps, true, mrXInitialLocation, null);

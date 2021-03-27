@@ -28,6 +28,6 @@ public class Moriarty implements Ai {
 
 		//Keep this until replaceable
 		//return moves.get(new Random().nextInt(moves.size()));
-		return new Minimax((Board.GameState) board, 3, moves.get(0).source()).getBestMove();
+		return new Minimax((Board.GameState) board, 1, moves.get(0).source()).getBestMove();
 	}
 }
