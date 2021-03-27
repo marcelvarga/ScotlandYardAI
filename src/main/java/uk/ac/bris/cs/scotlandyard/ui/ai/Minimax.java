@@ -24,12 +24,13 @@ public class Minimax {
     private int searchBestScore(Board.GameState state, int depth, int alpha, int beta, boolean isMrX, int mrXLocation){
         if (depth == 0 || !state.getWinner().isEmpty())
             return score(state, mrXLocation);
-
         if(isMrX) {
             int maxEval = minusInfinity;
             ArrayList<Move> movesToCheck = movesFilter(state, mrXLocation);
             for(Move currMove : movesToCheck)
                 if(currMove.visit(new Move.FunctionalVisitor<>(m -> true, m -> true))){
+                    long startTime = System.currentTimeMillis();
+
                     verifiedMoves++;
                 int eval = searchBestScore(
                         state.advance(currMove),
@@ -38,6 +39,8 @@ public class Minimax {
                         beta,
                         false,
                         getDest(currMove));
+                long endTime = System.currentTimeMillis();
+                System.out.println("Total execution time: " + (endTime-startTime) + "ms");
                 if(maxEval < eval) {
                     maxEval = eval;
                     bestMove = currMove;
@@ -79,7 +82,7 @@ public class Minimax {
     }
 
     public Move getBestMove(){
-        searchBestScore(gameState, 1, minusInfinity, plusInfinity, true, mrXInitialLocation);
+        searchBestScore(gameState, 2, minusInfinity, plusInfinity, true, mrXInitialLocation);
         System.out.println(verifiedMoves);
         verifiedMoves = 0;
         return bestMove;
@@ -106,14 +109,14 @@ public class Minimax {
         ArrayList<Move> temp = new ArrayList<>();
 
         // Omit doubleMoves if mrX isn't close to being caught (detective more than 2 nodes away)
-        if(new Dijkstra(state, mrXLocation).getDistToMrX() > 2){
+        //if(new Dijkstra(state, mrXLocation).getDistToMrX() > 2){
             for(Move move : allMoves){
                 boolean isSingleMove = move.visit(new Move.FunctionalVisitor<>(m -> true, m -> false));
                 if(isSingleMove)
                 temp.add(move);
             }
             return temp;
-        }
-        return allMoves;
+       // }
+        //return allMoves;
     }
 }
