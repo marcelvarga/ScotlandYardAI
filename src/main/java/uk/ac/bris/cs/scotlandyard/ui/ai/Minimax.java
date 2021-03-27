@@ -2,16 +2,17 @@ package uk.ac.bris.cs.scotlandyard.ui.ai;
 import uk.ac.bris.cs.scotlandyard.model.*;
 
 import java.util.ArrayList;
-
+import java.math.*;
 public class Minimax {
 
 
     Board.GameState gameState;
     int steps;
     int mrXInitialLocation;
-    final int minusInfinity = -10000;
-    final int plusInfinity  = +10000;
+    final int minusInfinity = -1000000;
+    final int plusInfinity  = +1000000;
     Move bestMove;
+    int verifiedMoves = 0;
 
     Minimax(Board.GameState gameState, int steps, int mrXInitialLocation){
         this.gameState = gameState;
@@ -20,7 +21,7 @@ public class Minimax {
 
     }
 
-    private int searchBestScore(Board.GameState state, int depth, boolean isMrX, int mrXLocation){
+    private int searchBestScore(Board.GameState state, int depth, int alpha, int beta, boolean isMrX, int mrXLocation){
         if (depth == 0 || !state.getWinner().isEmpty())
             return score(state, mrXLocation);
 
@@ -29,15 +30,20 @@ public class Minimax {
             ArrayList<Move> movesToCheck = movesFilter(state, mrXLocation);
             for(Move currMove : movesToCheck)
                 if(currMove.visit(new Move.FunctionalVisitor<>(m -> true, m -> true))){
+                    verifiedMoves++;
                 int eval = searchBestScore(
                         state.advance(currMove),
                         depth - 1,
+                        alpha,
+                        beta,
                         false,
                         getDest(currMove));
                 if(maxEval < eval) {
                     maxEval = eval;
                     bestMove = currMove;
                 }
+                alpha = Math.max(alpha, eval);
+                if(beta <= alpha) break;
             }
             return maxEval;
         }
@@ -45,17 +51,20 @@ public class Minimax {
             int minEval = plusInfinity;
             boolean isLastPlayer = checkIfLastPlayer(state);
             int changeDepth = 0;
-            if(isLastPlayer) changeDepth = 1;
+            if (isLastPlayer) changeDepth = 1;
 
             for (Move currMove : state.getAvailableMoves()){
+                verifiedMoves++;
                 int eval = searchBestScore(
                         state.advance(currMove),
                         depth - changeDepth,
+                        alpha,
+                        beta,
                         isLastPlayer,
                         mrXLocation);
-                if (minEval >= eval) {
-                    minEval = eval;
-                }
+                minEval = Math.min(minEval, eval);
+                beta = Math.min(beta, eval);
+                if (beta <= alpha) break;
             }
             return minEval;
         }
@@ -70,7 +79,9 @@ public class Minimax {
     }
 
     public Move getBestMove(){
-        searchBestScore(gameState, 2, true, mrXInitialLocation);
+        searchBestScore(gameState, 1, minusInfinity, plusInfinity, true, mrXInitialLocation);
+        System.out.println(verifiedMoves);
+        verifiedMoves = 0;
         return bestMove;
     }
 
