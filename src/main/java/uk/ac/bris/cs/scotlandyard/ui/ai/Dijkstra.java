@@ -35,25 +35,16 @@ public class Dijkstra {
         }
     }
 
-    private ArrayList<Integer> distTo;
-    private ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph;
+    private final ArrayList<Integer> distTo;
     private ArrayList<Piece> pieces;
-    private ArrayList<Integer> detectiveLocations;
-    private int mrXLocation;
-    private PriorityQueue<Node> pQueue;
-    private Board board;
+    private final int mrXLocation;
 
-    Dijkstra(Board board, Integer mrXLocation){
+    Dijkstra(ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph, ArrayList<Integer> detectiveLocations, Integer mrXLocation){
         distTo = new ArrayList<>(Collections.nCopies(200, 1000));
-        this.board = board;
-        this.graph = board.getSetup().graph;
-        pieces = new ArrayList<>();
-        this.pieces.addAll(board.getPlayers());
         this.mrXLocation = mrXLocation;
-        detectiveLocations = getDetectiveLocations();
 
         //Generate a priority queue that stores detective locations, and their distance "travelled"
-        this.pQueue = new PriorityQueue<>();
+        PriorityQueue<Node> pQueue = new PriorityQueue<>();
         for(int location : detectiveLocations){
             distTo.set(location, 0);
             pQueue.add(new Node(location, 0));
@@ -63,6 +54,7 @@ public class Dijkstra {
             Node current = pQueue.poll();
             int loc = current.getLocation();
             int dist = current.getDistance();
+            if (loc == mrXLocation) return;
 
             if(distTo.get(loc) == dist)
             for(Integer next : graph.adjacentNodes(loc)) {
@@ -76,15 +68,4 @@ public class Dijkstra {
 
     public ArrayList<Integer> getDistTo() { return distTo; }
     public Integer getDistToMrX() { return distTo.get(mrXLocation); }
-
-    private ArrayList<Integer> getDetectiveLocations() {
-        detectiveLocations = new ArrayList<>();
-
-        for (Piece piece : pieces)
-            if(piece.isDetective()){
-                Optional<Integer> location = board.getDetectiveLocation((Piece.Detective) piece);
-                location.ifPresent(integer -> detectiveLocations.add(integer));
-            }
-        return detectiveLocations;
-    }
 }
