@@ -36,7 +36,6 @@ public class Dijkstra {
     }
 
     private final ArrayList<Integer> distTo;
-    private ArrayList<Piece> pieces;
     private final int mrXLocation;
 
     Dijkstra(ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph, ArrayList<Integer> detectiveLocations, Integer mrXLocation){
@@ -56,6 +55,7 @@ public class Dijkstra {
             int dist = current.getDistance();
             if (loc == mrXLocation) return;
 
+
             if(distTo.get(loc) == dist)
             for(Integer next : graph.adjacentNodes(loc)) {
                 if(distTo.get(next) > distTo.get(loc) + 1) {
@@ -66,6 +66,5 @@ public class Dijkstra {
         }
     }
 
-    public ArrayList<Integer> getDistTo() { return distTo; }
     public Integer getDistToMrX() { return distTo.get(mrXLocation); }
 }

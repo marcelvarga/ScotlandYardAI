@@ -18,14 +18,10 @@ public class Moriarty implements Ai {
 
 		var moves = board.getAvailableMoves().asList();
 
-
 		//bestNode is now the node with the most optimistic outcome
-		//This doesn't make much sense, as the best outcome is the detectives running away
 		if(!moves.get(0).commencedBy().isMrX()) throw new IllegalArgumentException("It's not mrX's turn!");
 
-
-		//Keep this until replaceable
-		//return moves.get(new Random().nextInt(moves.size()));
-		return new Minimax((Board.GameState) board, 1, moves.get(0).source()).getBestMove();
+		System.out.println("--------------------------------------- New call --------------------------------------------------------------------");
+		return new Minimax((Board.GameState) board, 2, moves.get(0).source(), timeoutPair.left()).getBestMove();
 	}
 }
