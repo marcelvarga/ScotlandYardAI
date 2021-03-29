@@ -109,11 +109,11 @@ public class Minimax {
 
     public Move getBestMove(){
         searchBestScore(gameState, steps, minusInfinity, plusInfinity, true, mrXInitialLocation);
-        System.out.println(verifiedMoves);
+        System.out.println("Number of verified moves: " + verifiedMoves);
         verifiedMoves = 0;
-        System.out.println("Table calls " + tableCalls + ", Dijkstra calls " + newCalls);
-        System.out.println("Size of Transposition Table is " + transpositionTable.size());
-        System.out.println((System.currentTimeMillis() - startTime) / 1000);
+        System.out.println("Table calls: " + tableCalls + ", Dijkstra calls: " + newCalls);
+        System.out.println("Size of Transposition Table is: " + transpositionTable.size());
+        System.out.println("Time elapsed: " + Math.ceil((System.currentTimeMillis() - startTime) / 1000) + " seconds");
 
         return bestMove;
     }
