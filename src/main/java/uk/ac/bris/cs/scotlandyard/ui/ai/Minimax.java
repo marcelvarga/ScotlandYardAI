@@ -3,6 +3,7 @@ import uk.ac.bris.cs.scotlandyard.model.*;
 
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.*;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
+import static uk.ac.bris.cs.scotlandyard.model.Move.*;
 
 
 
@@ -32,6 +33,7 @@ public class Minimax {
     }
 
     private int searchBestScore(Board.GameState state, int depth, int alpha, int beta, boolean isMrX, int mrXLocation) {
+        // Stop searching if the depth is zero, there's a winner or the time's nearly up
         if (depth == 0 || !state.getWinner().isEmpty() || (System.currentTimeMillis() - startTime > maxTime - 2000))
             return score(state, mrXLocation);
         maxDepth = Math.max(maxDepth, steps - depth + 1);
@@ -39,8 +41,16 @@ public class Minimax {
             int maxEval = minusInfinity;
             ArrayList<Move> movesToCheck = movesFilter(state, mrXLocation);
 
+            // Pick one of the "best" moves to investigate first
+            // Moves which increase distance tend to be better
+
+            movesToCheck = ArrayList.sort(
+                    movesToCheck,
+                    (x, y) -> leftMovesFurther(state, x, y, mrXLocation)
+            );
+
             for (Move currMove : movesToCheck)
-                if (currMove.visit(new Move.FunctionalVisitor<>(m -> true, m -> true))) {
+                if (currMove.visit(new FunctionalVisitor<>(m -> true, m -> true))) {
                     verifiedMoves++;
                     int eval = searchBestScore(
                             state.advance(currMove),
@@ -86,6 +96,15 @@ public class Minimax {
                 return minEval;
         }
     }
+
+    private boolean leftMovesFurther(Board.GameState state, Move x, Move y, int mrXLocation) {
+        return getDistToMrX(state.advance(x), mrXLocation) > getDistToMrX(state.advance(y), mrXLocation);
+    }
+
+    private int getDistToMrX(Board.GameState state, int mrXLocation) {
+        return dijkstraCache.getDistance(state, getDetectiveLocations(state), mrXLocation);
+    }
+
     private int score(Board.GameState state, int mrXLocation){
         int distanceToMrX = dijkstraCache.getDistance(state, getDetectiveLocations(state), mrXLocation);
 
