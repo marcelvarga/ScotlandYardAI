@@ -36,15 +36,15 @@ public class Dijkstra {
     }
 
     private final ArrayList<Integer> distTo;
-    private final int mrXLocation;
+    private final int towards;
 
-    Dijkstra(ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph, ArrayList<Integer> detectiveLocations, Integer mrXLocation){
+    Dijkstra(ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph, ArrayList<Integer> from, Integer towards){
         distTo = new ArrayList<>(Collections.nCopies(200, 1000));
-        this.mrXLocation = mrXLocation;
+        this.towards = towards;
 
         //Generate a priority queue that stores detective locations, and their distance "travelled"
         PriorityQueue<Node> pQueue = new PriorityQueue<>();
-        for(int location : detectiveLocations){
+        for(int location : from){
             distTo.set(location, 0);
             pQueue.add(new Node(location, 0));
         }
@@ -53,8 +53,7 @@ public class Dijkstra {
             Node current = pQueue.poll();
             int loc = current.getLocation();
             int dist = current.getDistance();
-            if (loc == mrXLocation) return;
-
+            if (loc == towards) return;
 
             if(distTo.get(loc) == dist)
             for(Integer next : graph.adjacentNodes(loc)) {
@@ -66,5 +65,5 @@ public class Dijkstra {
         }
     }
 
-    public Integer getDistToMrX() { return distTo.get(mrXLocation); }
+    public Integer getDistTo() { return distTo.get(towards); }
 }
