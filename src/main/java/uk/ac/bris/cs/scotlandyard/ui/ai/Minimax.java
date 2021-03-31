@@ -22,6 +22,7 @@ public class Minimax {
     Map<ArrayList<Integer>, Integer> transpositionTable;
     private int newCalls;
     private int tableCalls;
+    private int maxDepth;
 
     Minimax(Board.GameState gameState, int steps, int mrXInitialLocation, Long maxTime){
         this.gameState = gameState;
@@ -33,9 +34,9 @@ public class Minimax {
     }
 
     private int searchBestScore(Board.GameState state, int depth, int alpha, int beta, boolean isMrX, int mrXLocation) {
-        if (depth == 0 || !state.getWinner().isEmpty())
+        if (depth == 0 || !state.getWinner().isEmpty())// || (System.currentTimeMillis() - startTime > maxTime - 5000))
             return score(state, mrXLocation);
-
+        maxDepth = Math.max(maxDepth, steps - depth + 1);
         if (isMrX) {
             int maxEval = minusInfinity;
             ArrayList<Move> movesToCheck = movesFilter(state, mrXLocation);
@@ -43,7 +44,6 @@ public class Minimax {
             for (Move currMove : movesToCheck)
                 if (currMove.visit(new Move.FunctionalVisitor<>(m -> true, m -> true))) {
                     verifiedMoves++;
-
                     int eval = searchBestScore(
                             state.advance(currMove),
                             depth - 1,
@@ -54,12 +54,13 @@ public class Minimax {
 
                     if (maxEval < eval) {
                         maxEval = eval;
+                        if(depth == steps)
                         bestMove = currMove;
                     }
                     alpha = Math.max(alpha, eval);
                     if (beta <= alpha) break;
                 }
-            System.out.println("Max score: " + maxEval);
+            //System.out.println("Max score: " + maxEval);
             return maxEval;
 
         } else {
@@ -72,7 +73,6 @@ public class Minimax {
             for (Move currMove : availableMoves)
                 if (currMove.commencedBy() == currPiece) {
                     verifiedMoves++;
-
                     int eval = searchBestScore(
                             state.advance(currMove),
                             depth - changeDepth,
@@ -84,7 +84,6 @@ public class Minimax {
                     minEval = Math.min(minEval, eval);
                     beta = Math.min(beta, eval);
                     if (beta <= alpha) break;
-
                 }
                 return minEval;
         }
@@ -97,23 +96,24 @@ public class Minimax {
 
         if (!transpositionTable.containsKey(playerLocations)) {
             newCalls++;
-            transpositionTable.put(playerLocations, new Dijkstra(state.getSetup().graph, detectiveLocations, mrXLocation).getDistToMrX());
+            distanceToMrX = new Dijkstra(state.getSetup().graph, detectiveLocations, mrXLocation).getDistToMrX();
+            transpositionTable.put(playerLocations, distanceToMrX);
         }
-        else
+        else {
             tableCalls++;
-        distanceToMrX = transpositionTable.get(playerLocations);
+            distanceToMrX = transpositionTable.get(playerLocations);
+        }
 
-
-        return 10 * distanceToMrX + state.getAvailableMoves().size() + 2 * ticketFactor(state);
+        return 100 * distanceToMrX + state.getAvailableMoves().size() + 2 * ticketFactor(state);
     }
 
     public Move getBestMove(){
         searchBestScore(gameState, steps, minusInfinity, plusInfinity, true, mrXInitialLocation);
         System.out.println("Number of verified moves: " + verifiedMoves);
-        verifiedMoves = 0;
-        System.out.println("Table calls: " + tableCalls + ", Dijkstra calls: " + newCalls);
+        System.out.println("Looking " + maxDepth + " steps ahead");
+        System.out.println("Table calls: " + tableCalls + ", Dijkstra calls: " + newCalls + ", Ratio: " + Math.floorDiv(tableCalls, newCalls));
         System.out.println("Size of Transposition Table is: " + transpositionTable.size());
-        System.out.println("Time elapsed: " + Math.ceil((System.currentTimeMillis() - startTime) / 1000) + " seconds");
+        System.out.printf("Time elapsed: %.3f seconds%n", ((System.currentTimeMillis() - startTime) / (float)1000));
 
         return bestMove;
     }
@@ -139,7 +139,7 @@ public class Minimax {
         ArrayList<Move> temp = new ArrayList<>();
 
         // Omit doubleMoves if mrX isn't close to being caught (detective more than 2 nodes away)
-        if(new Dijkstra(state.getSetup().graph, getDetectiveLocations(state),mrXLocation) .getDistToMrX() > 2){
+        if(new Dijkstra(state.getSetup().graph, getDetectiveLocations(state),mrXLocation).getDistToMrX() > 2){
             for(Move move : allMoves){
                 boolean isSingleMove = move.visit(new Move.FunctionalVisitor<>(m -> true, m -> false));
                 if(isSingleMove)
@@ -168,9 +168,9 @@ public class Minimax {
     public int ticketFactor(Board.GameState state) {
         Optional<Board.TicketBoard> tickets = state.getPlayerTickets(MRX);
         return tickets.get().getCount(TAXI)
-                + tickets.get().getCount(BUS) * 2
-                + tickets.get().getCount(UNDERGROUND) * 3
-                + tickets.get().getCount(SECRET) * 5
-                + tickets.get().getCount(DOUBLE) * 10;
+                + tickets.get().getCount(BUS) * 3
+                + tickets.get().getCount(UNDERGROUND) * 4
+                + tickets.get().getCount(SECRET) * 8
+                + tickets.get().getCount(DOUBLE) * 12;
     }
 }
