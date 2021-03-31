@@ -38,9 +38,11 @@ public class Dijkstra {
     private final ArrayList<Integer> distTo;
     private final int towards;
 
-    Dijkstra(ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph, ArrayList<Integer> from, Integer towards){
+    // Run Dijkstra with multiple sources ("from") towards one destination "destination"
+    // earlyBreak tells Dijkstra if it should return as soon as the distance to the destination is computed
+    Dijkstra(ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph, ArrayList<Integer> from, Integer destination, boolean earlyBreak){
         distTo = new ArrayList<>(Collections.nCopies(200, 1000));
-        this.towards = towards;
+        this.towards = destination;
 
         //Generate a priority queue that stores detective locations, and their distance "travelled"
         PriorityQueue<Node> pQueue = new PriorityQueue<>();
@@ -53,7 +55,7 @@ public class Dijkstra {
             Node current = pQueue.poll();
             int loc = current.getLocation();
             int dist = current.getDistance();
-            if (loc == towards) return;
+            if (loc == destination && earlyBreak) return;
 
             if(distTo.get(loc) == dist)
             for(Integer next : graph.adjacentNodes(loc)) {
@@ -65,5 +67,6 @@ public class Dijkstra {
         }
     }
 
-    public Integer getDistTo() { return distTo.get(towards); }
+    public Integer getDistToDestination() { return distTo.get(towards); }
+    public ArrayList<Integer> getDistances() { return distTo; }
 }

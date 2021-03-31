@@ -1,4 +1,5 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
+import org.checkerframework.checker.units.qual.A;
 import uk.ac.bris.cs.scotlandyard.model.*;
 
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.*;
@@ -74,10 +75,8 @@ public class Minimax {
 
             int minEval = plusInfinity;
 
-            ArrayList<Move> availableMoves = new ArrayList<>(state.getAvailableMoves());
-            Piece currPiece = availableMoves.get(0).commencedBy();
-            for (Move currMove : availableMoves)
-                if (currMove.commencedBy() == currPiece) {
+            ArrayList<Move> movesToCheck = filterDetectiveMoves(state, mrXLocation);
+            for (Move currMove : movesToCheck){
                     verifiedMoves++;
                     int eval = searchBestScore(
                             state.advance(currMove),
@@ -97,6 +96,7 @@ public class Minimax {
 
     private int score(Board.GameState state, int mrXLocation){
         int distanceToMrX = dijkstraCache.getDistance(state, getDetectiveLocations(state), mrXLocation);
+        System.out.println("Distance to Mr X: " + distanceToMrX);
         return 100 * distanceToMrX + state.getAvailableMoves().size() + 2 * ticketFactor(state);
     }
 
@@ -125,23 +125,43 @@ public class Minimax {
         }
         return true;
     }
-
     private ArrayList<Move> filterMrXMoves(Board.GameState state, int mrXLocation){
         ArrayList<Move> allMoves = new ArrayList<>(state.getAvailableMoves().asList());
-        ArrayList<Move> temp = new ArrayList<>();
+        ArrayList<Move> movesToCheck = new ArrayList<>();
 
         // Omit doubleMoves if mrX isn't close to being caught (detective more than 2 nodes away)
-        if(new Dijkstra(state.getSetup().graph, getDetectiveLocations(state),mrXLocation).getDistTo() > 2){
+        if(new Dijkstra(state.getSetup().graph, getDetectiveLocations(state),mrXLocation, true).getDistToDestination() > 4){
             for(Move move : allMoves){
                 boolean isSingleMove = move.visit(new Move.FunctionalVisitor<>(m -> true, m -> false));
                 if(isSingleMove)
-                temp.add(move);
+                movesToCheck.add(move);
             }
-            return temp;
+            return movesToCheck;
         }
         return allMoves;
     }
+    private ArrayList<Move> filterDetectiveMoves(Board.GameState state, int mrXLocation) {
 
+        ArrayList<Move> allMoves = new ArrayList<>(state.getAvailableMoves().asList());
+        Piece currPiece = allMoves.get(0).commencedBy();
+        Integer detectiveLocation = allMoves.get(0).source();
+
+        ArrayList<Integer> distances = new Dijkstra(state.getSetup().graph, new ArrayList<>(Arrays.asList(mrXLocation)), detectiveLocation, false ).getDistances();
+
+        ArrayList<Move> currDetectiveMoves = new ArrayList<>();
+        for(Move move : allMoves)
+            if(move.commencedBy() == currPiece)
+                currDetectiveMoves.add(move);
+        Collections.sort(currDetectiveMoves, Comparator.comparingInt(move -> distances.get(getDest(move))));
+
+        ArrayList<Move> movesToCheck = new ArrayList<>();
+        for(Move move : currDetectiveMoves)
+            if(distances.get(getDest(move)).equals(distances.get(getDest(currDetectiveMoves.get(0)))))
+                movesToCheck.add(move);
+
+        return movesToCheck;
+
+    }
     private ArrayList<Integer> getDetectiveLocations(Board.GameState state){
             ArrayList<Integer> detectiveLocations = new ArrayList<>();
             ArrayList<Piece> pieces = new ArrayList<>(state.getPlayers());
@@ -154,15 +174,15 @@ public class Minimax {
             return detectiveLocations;
 
     }
-    //Return a score based on the tickets Moriarty currently has
 
+    //Return a score based on the tickets Moriarty currently has
     //This removes problem of Moriarty using SECRET tickets unnecessarily
     public int ticketFactor(Board.GameState state) {
         Optional<Board.TicketBoard> tickets = state.getPlayerTickets(MRX);
-        return tickets.get().getCount(TAXI)
+        return tickets.get().getCount(TAXI) * 2
                 + tickets.get().getCount(BUS) * 3
                 + tickets.get().getCount(UNDERGROUND) * 4
-                + tickets.get().getCount(SECRET) * 8
-                + tickets.get().getCount(DOUBLE) * 12;
+                + tickets.get().getCount(SECRET) * 5
+                + tickets.get().getCount(DOUBLE) * 6;
     }
 }
