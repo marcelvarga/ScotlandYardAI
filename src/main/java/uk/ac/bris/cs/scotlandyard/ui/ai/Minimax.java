@@ -101,7 +101,7 @@ public class Minimax {
         //System.out.println("Distance to Mr X: " + distanceToMrX);
 
 
-        return 50 * distanceToMrX + mrXAvailableMovesCount + ticketFactor(state);
+        return 50 * distanceToMrX + 5 * mrXAvailableMovesCount + ticketFactor(state);
     }
 
     //Return a score based on the tickets Moriarty currently has
@@ -127,12 +127,9 @@ public class Minimax {
         this.maxTime = maxTime;
         this.steps = steps;
 
-        System.out.println("Minimum distance to MrX is: " + dijkstraCache.getDistance(state, getDetectiveLocations(state), mrXLocation));
-        System.out.println("MrX's location is: " + mrXLocation);
         searchBestScore(state, steps, minusInfinity, plusInfinity, true, mrXLocation, 0);
-        System.out.println("MrX's location after move is: " + getDest(bestMove));
+        System.out.println("MrX's location is: " + getDest(bestMove));
         System.out.println("Minimum distance to MrX is: " + dijkstraCache.getDistance(state, getDetectiveLocations(state), getDest(bestMove)));
-        System.out.println();
         System.out.println("Number of verified moves: " + verifiedMoves);
         System.out.println("Looking " + maxDepth + " steps ahead");
         System.out.println("Size of Dijkstra Cache is: " + dijkstraCache.getSize());
@@ -162,7 +159,7 @@ public class Minimax {
         ArrayList<Move> movesToCheck = new ArrayList<>();
 
         // Omit doubleMoves if mrX isn't close to being caught (detective more than 2 nodes away)
-        if (new Dijkstra(state.getSetup().graph, getDetectiveLocations(state), mrXLocation, true).getDistToDestination() > 4) {
+        if (new Dijkstra(state.getSetup().graph, getDetectiveLocations(state), mrXLocation, true).getDistToDestination() > 2) {
             for (Move move : allMoves) {
                 boolean isSingleMove = move.visit(new Move.FunctionalVisitor<>(m -> true, m -> false));
                 if (isSingleMove)
