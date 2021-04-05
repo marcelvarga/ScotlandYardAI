@@ -32,4 +32,5 @@ public class DijkstraCache {
     public int getSize(){
         return transpositionTable.size();
     }
+
 }

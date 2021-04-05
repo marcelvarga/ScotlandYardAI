@@ -22,7 +22,7 @@ public class Moriarty implements Ai {
 		if(!moves.get(0).commencedBy().isMrX()) throw new IllegalArgumentException("It's not mrX's turn!");
 
 		System.out.println("--------------------------------------- New call --------------------------------------------------------------------");
-		return new Minimax().getBestMove((Board.GameState) board, 3, moves.get(0).source(), timeoutPair.left());
+		return new Minimax().getBestMove((Board.GameState) board, 2, moves.get(0).source(), timeoutPair.left());
 		//return new Minimax((Board.GameState) board, 2, moves.get(0).source(), timeoutPair.left()).getBestMove();
 	}
 }

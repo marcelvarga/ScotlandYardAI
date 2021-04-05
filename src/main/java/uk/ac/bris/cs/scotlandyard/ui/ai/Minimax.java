@@ -1,8 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
-import org.checkerframework.checker.units.qual.A;
 import uk.ac.bris.cs.scotlandyard.model.*;
 
-import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.*;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.Move.*;
 
@@ -28,18 +26,20 @@ public class Minimax {
 
     }
 
-    private int searchBestScore(Board.GameState state, int depth, int alpha, int beta, boolean isMrX, int mrXLocation) {
+    private int searchBestScore(Board.GameState state, int depth, int alpha, int beta, boolean isMrX, int mrXLocation, int mrXAvailableMovesCount) {
         // Stop searching if the depth is zero, there's a winner or the time's nearly up
 
         if (depth == 0)
-            return score(state, mrXLocation);
+            return score(state, mrXLocation, mrXAvailableMovesCount);
         if (!state.getWinner().isEmpty())
-            return score(state, mrXLocation);
+            return score(state, mrXLocation, mrXAvailableMovesCount);
         if ((System.currentTimeMillis() - startTime > maxTime - 2))
-            return score(state, mrXLocation);
+            return score(state, mrXLocation, mrXAvailableMovesCount);
+
 
         maxDepth = Math.max(maxDepth, steps - depth + 1);
         if (isMrX) {
+            mrXAvailableMovesCount = state.getAvailableMoves().size();
             int maxEval = minusInfinity;
             ArrayList<Move> movesToCheck = filterMrXMoves(state, mrXLocation);
 
@@ -52,7 +52,8 @@ public class Minimax {
                             alpha,
                             beta,
                             false,
-                            getDest(currMove));
+                            getDest(currMove),
+                            mrXAvailableMovesCount);
 
                     if (maxEval < eval) {
                         maxEval = eval;
@@ -66,9 +67,9 @@ public class Minimax {
             return maxEval;
 
         } else {
-            boolean isLastPlayer = checkIfLastPlayer(state);
+            boolean isLastDetective = checkIfLastDetective(state);
             int changeDepth = 0;
-            if (isLastPlayer) changeDepth = 1;
+            if (isLastDetective) changeDepth = 1;
 
             int minEval = plusInfinity;
 
@@ -77,11 +78,12 @@ public class Minimax {
                 verifiedMoves++;
                 int eval = searchBestScore(
                         state.advance(currMove),
-                        depth - changeDepth,
+                        depth,
                         alpha,
                         beta,
-                        isLastPlayer,
-                        mrXLocation);
+                        isLastDetective,
+                        mrXLocation,
+                        mrXAvailableMovesCount);
 
                 minEval = Math.min(minEval, eval);
                 beta = Math.min(beta, eval);
@@ -91,10 +93,15 @@ public class Minimax {
         }
     }
 
-    private int score(Board.GameState state, int mrXLocation) {
+    private int score(Board.GameState state, int mrXLocation, int mrXAvailableMovesCount) {
         int distanceToMrX = dijkstraCache.getDistance(state, getDetectiveLocations(state), mrXLocation);
+
+        // Avoid positions where mrX will be caught
+        if (distanceToMrX == 1) return minusInfinity;
         //System.out.println("Distance to Mr X: " + distanceToMrX);
-        return 50 * distanceToMrX + 5 * state.getAvailableMoves().size() + ticketFactor(state);
+
+
+        return 50 * distanceToMrX + mrXAvailableMovesCount + ticketFactor(state);
     }
 
     //Return a score based on the tickets Moriarty currently has
@@ -120,12 +127,17 @@ public class Minimax {
         this.maxTime = maxTime;
         this.steps = steps;
 
-        searchBestScore(state, steps, minusInfinity, plusInfinity, true, mrXLocation);
+        System.out.println("Minimum distance to MrX is: " + dijkstraCache.getDistance(state, getDetectiveLocations(state), mrXLocation));
+        System.out.println("MrX's location is: " + mrXLocation);
+        searchBestScore(state, steps, minusInfinity, plusInfinity, true, mrXLocation, 0);
+        System.out.println("MrX's location after move is: " + getDest(bestMove));
+        System.out.println("Minimum distance to MrX is: " + dijkstraCache.getDistance(state, getDetectiveLocations(state), getDest(bestMove)));
+        System.out.println();
         System.out.println("Number of verified moves: " + verifiedMoves);
         System.out.println("Looking " + maxDepth + " steps ahead");
         System.out.println("Size of Dijkstra Cache is: " + dijkstraCache.getSize());
         System.out.printf("Time elapsed: %.3f seconds%n", ((System.currentTimeMillis() - startTime) / (float) 1000));
-        System.out.printf("Score of chosen move: " + score(state, getDest(bestMove)) + "%n");
+        System.out.printf("Score of chosen move: " + score(state, getDest(bestMove), 0) + "%n");
 
         return bestMove;
     }
@@ -135,7 +147,7 @@ public class Minimax {
     }
 
     // Checks the available moves of the state to see if there are other players left to make a move in the current round
-    private boolean checkIfLastPlayer(Board.GameState state) {
+    private boolean checkIfLastDetective(Board.GameState state) {
         ArrayList<Move> moves = new ArrayList<>(state.getAvailableMoves().asList());
         if (moves.isEmpty()) return true;
         Piece firstPiece = moves.get(0).commencedBy();
