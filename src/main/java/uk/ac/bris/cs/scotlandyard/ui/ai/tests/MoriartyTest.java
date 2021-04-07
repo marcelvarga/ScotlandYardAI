@@ -12,5 +12,6 @@ class MoriartyTest {
 
     @org.junit.jupiter.api.Test
     void pickMove() {
+        //This is practically untestable in most situations
     }
 }
