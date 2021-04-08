@@ -33,7 +33,9 @@ public class Minimax {
             return score(state, mrXLocation, mrXAvailableMovesCount);
         if (!state.getWinner().isEmpty())
             return score(state, mrXLocation, mrXAvailableMovesCount);
-        if ((System.currentTimeMillis() - startTime > maxTime - 2))
+        // If the time elapsed (ms) is larger than the time-limit (minus a buffer), start exiting
+        // The current buffer is 2 SECONDS - best to tweak when testing so it doesn't take forever
+        if ((System.currentTimeMillis() - startTime > (maxTime - 20) * 1000))
             return score(state, mrXLocation, mrXAvailableMovesCount);
 
 
@@ -100,8 +102,19 @@ public class Minimax {
         if (distanceToMrX == 1) return minusInfinity;
         //System.out.println("Distance to Mr X: " + distanceToMrX);
 
+        // TODO
+        // Find Moriarty's past distance to the detectives by one round
+        return 10 * distanceFactor(distanceToMrX, 0) + 5 * mrXAvailableMovesCount + ticketFactor(state);
+    }
 
-        return 50 * distanceToMrX + 5 * mrXAvailableMovesCount + ticketFactor(state);
+    // Returns a score based on the distance Moriarty is from the detectives
+    // Increasing distance when the past distance is small is better
+    // Eg. 1 -> 2 distance is much better than 8 -> 9 distance
+    // This means Moriarty should avoid getting close to detectives
+    public int distanceFactor(int distanceToMrX, int pastDistanceToMrX) {
+        int difference = distanceToMrX - pastDistanceToMrX;
+        return distanceToMrX +
+                difference * Math.round(10/(distanceToMrX+1));
     }
 
     //Return a score based on the tickets Moriarty currently has
@@ -110,13 +123,16 @@ public class Minimax {
 
         double[] multipliers =
                 //TAXI, BUS, UNDERGROUND, SECRET, DOUBLE
-                { 0.5 ,   2 ,      4      ,    8   ,   10};
+                {  1  ,  2 ,     4      ,  10   ,   12  };
+
+                // A double is worth slightly more than one unit distance
+                // Hopefully, this means it's only used to improve other factors
 
         int score = 0;
         for (int i = 0; i < 5; i++) {
             int num = tickets.get().getCount(ScotlandYard.Ticket.values()[i]);
             // A hefty penalty is applied when MrX runs out of a ticket type
-            if (num == 0) score -= 20;
+            if (num == 0) score -= 50;
             else score += multipliers[i] * num;
         }
 

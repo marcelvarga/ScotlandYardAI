@@ -30,7 +30,7 @@ class DijkstraTest {
 
     Player mrX = new Player(MRX, defaultMrXTickets(), 3);
     Player blue = new Player(BLUE, defaultDetectiveTickets(), 4);
-    GameState state = MyGameStateFactory.build(standard24RoundSetup(), mrX, blue);
+    //GameState state = MyGameStateFactory.build(standard24RoundSetup(), mrX, blue);
 
     @org.junit.jupiter.api.Test
     public void testDijkstraCreation() throws Exception {
