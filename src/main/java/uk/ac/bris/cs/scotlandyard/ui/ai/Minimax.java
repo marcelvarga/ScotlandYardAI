@@ -102,19 +102,13 @@ public class Minimax {
         if (distanceToMrX == 1) return minusInfinity;
         //System.out.println("Distance to Mr X: " + distanceToMrX);
 
-        // TODO
-        // Find Moriarty's past distance to the detectives by one round
-        return 10 * distanceFactor(distanceToMrX, 0) + 5 * mrXAvailableMovesCount + ticketFactor(state);
+        return 10 * distanceFactor(distanceToMrX) + 5 * mrXAvailableMovesCount + ticketFactor(state);
     }
 
     // Returns a score based on the distance Moriarty is from the detectives
-    // Increasing distance when the past distance is small is better
-    // Eg. 1 -> 2 distance is much better than 8 -> 9 distance
-    // This means Moriarty should avoid getting close to detectives
-    public int distanceFactor(int distanceToMrX, int pastDistanceToMrX) {
-        int difference = distanceToMrX - pastDistanceToMrX;
-        return distanceToMrX +
-                difference * Math.round(10/(distanceToMrX+1));
+    // Increasing distance isn't as good when you're already far away
+    public int distanceFactor(int distanceToMrX) {
+        return (int) Math.round(Math.log(distanceToMrX+1)/Math.log(2));
     }
 
     //Return a score based on the tickets Moriarty currently has
