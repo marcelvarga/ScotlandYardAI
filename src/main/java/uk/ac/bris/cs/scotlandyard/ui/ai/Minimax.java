@@ -102,7 +102,16 @@ public class Minimax {
         if (distanceToMrX == 1) return minusInfinity;
         //System.out.println("Distance to Mr X: " + distanceToMrX);
 
-        return 10 * distanceFactor(distanceToMrX) + 5 * mrXAvailableMovesCount + ticketFactor(state);
+        return 10 * distanceFactor(distanceToMrX) +
+                5 * mrXAvailableMovesCount +
+                ticketFactor(state) +
+                locationsFactor(state);
+    }
+
+    public int locationsFactor(Board.GameState state) {
+        PossibleLocations p = new PossibleLocations(state.getMrXTravelLog());
+        p.getPossibleLocations();
+        return 0;
     }
 
     // Returns a score based on the distance Moriarty is from the detectives
