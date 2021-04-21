@@ -109,8 +109,6 @@ public class Minimax {
     }
 
     public int locationsFactor(Board.GameState state) {
-        PossibleLocations p = new PossibleLocations(state);
-        p.getPossibleLocations();
         return 0;
     }
 
