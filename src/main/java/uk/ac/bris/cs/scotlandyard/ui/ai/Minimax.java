@@ -174,16 +174,23 @@ public class Minimax {
     private ArrayList<Move> filterMrXMoves(Board.GameState state, int mrXLocation) {
         ArrayList<Move> allMoves = new ArrayList<>(state.getAvailableMoves().asList());
         ArrayList<Move> movesToCheck = new ArrayList<>();
+        Dijkstra d = new Dijkstra(state.getSetup().graph, getDetectiveLocations(state), mrXLocation, true);
 
         // Omit doubleMoves if mrX isn't close to being caught (detective more than 2 nodes away)
-        if (new Dijkstra(state.getSetup().graph, getDetectiveLocations(state), mrXLocation, true).getDistToDestination() > 2) {
+        if (d.getDistToDestination() > 2) {
             for (Move move : allMoves) {
                 boolean isSingleMove = move.visit(new Move.FunctionalVisitor<>(m -> true, m -> false));
                 if (isSingleMove)
                     movesToCheck.add(move);
             }
+            // Pick one of the "best" moves to investigate first
+            // Moves which INCREASE distance tend to be better
+            Collections.sort(movesToCheck, Comparator.comparingInt(move -> d.getDistances().get(getDest(move))));
+            Collections.reverse(movesToCheck);
+
             return movesToCheck;
         }
+
         return allMoves;
     }
 
