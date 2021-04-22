@@ -98,14 +98,12 @@ public class Minimax {
     private int score(Board.GameState state, int mrXLocation, int mrXAvailableMovesCount) {
         int distanceToMrX = dijkstraCache.getDistance(state, getDetectiveLocations(state), mrXLocation);
 
-        // Avoid positions where mrX will be caught
-        if (distanceToMrX == 1) return minusInfinity;
-        //System.out.println("Distance to Mr X: " + distanceToMrX);
-
         return 10 * distanceFactor(distanceToMrX) +
                 5 * mrXAvailableMovesCount +
                 ticketFactor(state) +
-                locationsFactor(state);
+                locationsFactor(state) +
+                //Apply massive penalty if MrX could be caught
+                ((distanceToMrX == 1) ? minusInfinity: 0);
     }
 
     public int locationsFactor(Board.GameState state) {
