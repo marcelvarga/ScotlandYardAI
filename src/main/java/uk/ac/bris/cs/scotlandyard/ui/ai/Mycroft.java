@@ -35,8 +35,7 @@ public class Mycroft implements Ai {
         // Guess the best move
         // Currently picks one at random
         var moves = board.getAvailableMoves().asList();
-        Move bestMove = moves.get(new Random().nextInt(moves.size()));
-
+        Move bestMove = mtd_f(board, 1, mrXLocation, moves.size(), null, -10000);
         int bestScore = new Minimax().score(board.advance(bestMove), mrXLocation, board.getAvailableMoves().size());
 
         for (int depth = 2; depth <= maxDepth; depth++) {
