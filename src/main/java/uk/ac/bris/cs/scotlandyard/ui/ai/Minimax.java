@@ -98,7 +98,7 @@ public class Minimax {
     public int score(Board.GameState state, int mrXLocation, int mrXAvailableMovesCount) {
         int distanceToMrX = dijkstraCache.getDistance(state, getDetectiveLocations(state), mrXLocation);
 
-        return 10 * distanceFactor(distanceToMrX) +
+        return 15 * distanceFactor(distanceToMrX) +
                 5 * mrXAvailableMovesCount +
                 ticketFactor(state) +
                 locationsFactor(state) +

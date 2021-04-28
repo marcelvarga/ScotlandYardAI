@@ -5,6 +5,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import io.atlassian.fugue.Pair;
 import uk.ac.bris.cs.scotlandyard.model.*;
 import uk.ac.bris.cs.scotlandyard.model.Board;
@@ -35,9 +37,16 @@ public class Mycroft implements Ai {
         // Guess the best move
         // Currently picks one at random
         var moves = board.getAvailableMoves().asList();
-        Move bestMove = mtd_f(board, 1, mrXLocation, moves.size(), null, -10000);
+
+        // Set a random move to start off with
+        Move placeholderMove = moves.get(new Random().nextInt(moves.size()));
+        int placeholderScore = new Minimax().score(board.advance(placeholderMove), mrXLocation, board.getAvailableMoves().size());
+
+        // Calculate the best first move with a depth 1
+        Move bestMove = mtd_f(board, 1, mrXLocation, moves.size(), placeholderMove, placeholderScore);
         int bestScore = new Minimax().score(board.advance(bestMove), mrXLocation, board.getAvailableMoves().size());
 
+        // Use iterative deepening
         for (int depth = 2; depth <= maxDepth; depth++) {
             System.out.println("Depth: " + depth);
             bestMove = mtd_f(board, depth, mrXLocation, moves.size(), bestMove, bestScore);
@@ -48,16 +57,18 @@ public class Mycroft implements Ai {
     }
 
     private Move alphaBetaMemorise(Board.GameState board, int depth, int alpha, int beta, boolean isMrX, int mrXLocation, int numMoves) {
-        Move bestMove = null;
-        int bestScore = 0;
+        ImmutableSet<Move> possibleMoves = board.getAvailableMoves();
+        Move bestMove = possibleMoves.iterator().next();
+        int bestScore = new Minimax().score(board.advance(bestMove), mrXLocation, board.getAvailableMoves().size());;
         int score;
 
         for (Move move : board.getAvailableMoves()) {
-            score = new Minimax().searchBestScore(board.advance(move), depth, alpha, beta, isMrX, mrXLocation, numMoves);
+            score = new Minimax().searchBestScore(board.advance(move), depth-1, alpha, beta, isMrX, mrXLocation, numMoves);
             alpha = max(alpha, score);
 
             // If the score is better, set the move as the best one
             if (score > bestScore) {
+                System.out.println("Found better move with score: " + score);
                 bestScore = score;
                 bestMove = move;
 
