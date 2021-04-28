@@ -26,7 +26,7 @@ public class Minimax {
 
     }
 
-    private int searchBestScore(Board.GameState state, int depth, int alpha, int beta, boolean isMrX, int mrXLocation, int mrXAvailableMovesCount) {
+    public int searchBestScore(Board.GameState state, int depth, int alpha, int beta, boolean isMrX, int mrXLocation, int mrXAvailableMovesCount) {
         // Stop searching if the depth is zero, there's a winner or the time's nearly up
 
         if (depth == 0)
@@ -35,8 +35,8 @@ public class Minimax {
             return score(state, mrXLocation, mrXAvailableMovesCount);
         // If the time elapsed (ms) is larger than the time-limit (minus a buffer), start exiting
         // The current buffer is 2 SECONDS - best to tweak when testing so it doesn't take forever
-        if ((System.currentTimeMillis() - startTime > (maxTime - 20) * 1000))
-            return score(state, mrXLocation, mrXAvailableMovesCount);
+        //if ((System.currentTimeMillis() - startTime > (maxTime - 20) * 1000))
+        //    return score(state, mrXLocation, mrXAvailableMovesCount);
 
 
         maxDepth = Math.max(maxDepth, steps - depth + 1);
@@ -95,7 +95,7 @@ public class Minimax {
         }
     }
 
-    private int score(Board.GameState state, int mrXLocation, int mrXAvailableMovesCount) {
+    public int score(Board.GameState state, int mrXLocation, int mrXAvailableMovesCount) {
         int distanceToMrX = dijkstraCache.getDistance(state, getDetectiveLocations(state), mrXLocation);
 
         return 10 * distanceFactor(distanceToMrX) +
