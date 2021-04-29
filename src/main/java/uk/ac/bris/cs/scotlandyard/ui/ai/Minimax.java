@@ -1,8 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 import uk.ac.bris.cs.scotlandyard.model.*;
 
-import javax.swing.plaf.nimbus.State;
-
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.Move.*;
 
@@ -107,27 +105,25 @@ public class Minimax {
         System.out.println("MrXMoves factor is: " + 5 * mrXAvailableMovesCount);
         System.out.println("Ticket factor is: " + ticketFactor(situation));
         System.out.println("Location factor is: " + locationsFactor(situation));*/
-        return 100 * distanceFactor(distanceToMrX) /*+
-                5 * mrXAvailableMovesCount +
-                ticketFactor(state) +
-                locationsFactor(state) +
-                //Apply massive penalty if MrX could be caught
-                ((distanceToMrX == 1) ? minusInfinity: 0)*/;
-    }
+        return (int) (
+                50 * distanceFactor(distanceToMrX) +
+                0.5 * mrXAvailableMovesCount +
+                0.1 * ticketFactor(situation) +
+                Math.pow(situation.numPossibleLocations(), 0.5) +
 
-    public int locationsFactor(Board.GameState state) {
-        return 0;
+                //Apply massive penalty if MrX could be caught
+                ((distanceToMrX == 1) ? minusInfinity: 0));
     }
 
     // Returns a score based on the distance Moriarty is from the detectives
     // Increasing distance isn't as good when you're already far away
-    public int distanceFactor(int distanceToMrX) {
+    private int distanceFactor(int distanceToMrX) {
         return (int) Math.round(Math.log(distanceToMrX+1)/Math.log(2));
     }
 
     //Return a score based on the tickets Moriarty currently has
-    public int ticketFactor(Board.GameState state) {
-        Optional<Board.TicketBoard> tickets = state.getPlayerTickets(MRX);
+    private int ticketFactor(Situation situation) {
+        Optional<Board.TicketBoard> tickets = situation.getState().getPlayerTickets(MRX);
 
         double[] multipliers =
                 //TAXI, BUS, UNDERGROUND, SECRET, DOUBLE
@@ -159,7 +155,16 @@ public class Minimax {
         System.out.println("Looking " + maxDepth + " steps ahead");
         System.out.println("Size of Dijkstra Cache is: " + dijkstraCache.getSize());
         System.out.printf("Time elapsed: %.3f seconds%n", ((System.currentTimeMillis() - startTime) / (float) 1000));
+
+        int distanceToMrX = dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), mrXLocation);
+        int mrXAvailableMovesCount = situation.getAvailableMoves().size();
+        System.out.println("\n------------Score breakdown------------");
         System.out.printf("Score of chosen move: " + score(situation, getDest(bestMove), 0) + "%n");
+        System.out.println("Distance factor: " + 50 * distanceFactor(distanceToMrX));
+        System.out.printf("MrXMoves factor: %.2f\n", 0.5 * mrXAvailableMovesCount);
+        System.out.printf("Ticket factor: %.2f\n", 0.1 * ticketFactor(situation));
+        System.out.printf("Location factor: %.2f\n", Math.pow(situation.numPossibleLocations(), 0.5));
+        System.out.println("Penalty: " + (distanceToMrX == 1));
 
         return bestMove;
     }
@@ -206,7 +211,7 @@ public class Minimax {
         Piece currPiece = allMoves.get(0).commencedBy();
         Integer detectiveLocation = allMoves.get(0).source();
 
-        ArrayList<Integer> distances = new Dijkstra(situation.getState().getSetup().graph, new ArrayList<>(Arrays.asList(mrXLocation)), detectiveLocation, false).getDistances();
+        ArrayList<Integer> distances = new Dijkstra(situation.getState().getSetup().graph, new ArrayList<>(Collections.singletonList(mrXLocation)), detectiveLocation, false).getDistances();
         allMoves.removeIf(m -> !(m.commencedBy().equals(currPiece)));
 
         // Pick one of the "best" moves to investigate first

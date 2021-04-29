@@ -27,7 +27,6 @@ public class Situation {
     public Situation(Board.GameState state) {
         this.state = state;
         this.possibleLocations = new ArrayList<>(Arrays.asList(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
-        System.out.println("Current possible locations are: " + possibleLocations);
     }
 
     // Used when advancing a situation
