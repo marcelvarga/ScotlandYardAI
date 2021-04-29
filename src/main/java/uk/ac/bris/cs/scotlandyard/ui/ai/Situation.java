@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import uk.ac.bris.cs.scotlandyard.model.*;
+import static uk.ac.bris.cs.scotlandyard.model.Move.*;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -42,8 +43,7 @@ public class Situation {
                 output.addAll(getSingleMovesWithTicket(location, Iterables.get(move.tickets(), 0)));
             }
         } else {
-            // move.destination DOES NOT EXIST - replace with correct method
-            //this.possibleLocations.remove(move.destination());
+            this.possibleLocations.remove(move.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
 
         }
         return output;
