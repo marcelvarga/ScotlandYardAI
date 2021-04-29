@@ -1,5 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
+import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -46,11 +47,19 @@ public class Mycroft implements Ai {
         Move bestMove = mtd_f(board, 1, mrXLocation, moves.size(), placeholderMove, placeholderScore);
         int bestScore = new Minimax().score(board.advance(bestMove), mrXLocation, board.getAvailableMoves().size());
 
+        Move move;
+        int score;
+
         // Use iterative deepening
         for (int depth = 2; depth <= maxDepth; depth++) {
             System.out.println("Depth: " + depth);
-            bestMove = mtd_f(board, depth, mrXLocation, moves.size(), bestMove, bestScore);
-            bestScore = new Minimax().score(board.advance(bestMove), mrXLocation, board.getAvailableMoves().size());
+            move = mtd_f(board, depth, mrXLocation, moves.size(), bestMove, bestScore);
+            score = new Minimax().score(board.advance(bestMove), mrXLocation, board.getAvailableMoves().size());
+
+            if (bestScore < score) {
+                bestMove = move;
+                bestScore = score;
+            }
         }
 
         return bestMove;
