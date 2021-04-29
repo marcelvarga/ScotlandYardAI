@@ -28,11 +28,11 @@ public class Mycroft implements Ai {
             Pair<Long, TimeUnit> timeoutPair) {
 
         var moves = board.getAvailableMoves().asList();
-        return getBestMove((Board.GameState) board, 3, moves.get(0).source(), timeoutPair.left());
+        return getMove((Board.GameState) board, 3, moves.get(0).source(), timeoutPair.left());
     }
 
     @Nonnull
-    private Move getBestMove(Board.GameState board, int maxDepth, int mrXLocation, long timeLeft) {
+    private Move getMove(Board.GameState board, int maxDepth, int mrXLocation, long timeLeft) {
 
         // Guess the best move
         // Currently picks one at random
@@ -67,18 +67,21 @@ public class Mycroft implements Ai {
     private Move alphaBetaMemorise(Board.GameState board, int depth, int alpha, int beta, boolean isMrX, int mrXLocation, int numMoves) {
         ImmutableSet<Move> possibleMoves = board.getAvailableMoves();
         Move bestMove = possibleMoves.iterator().next();
-        int bestScore = new Minimax().score(board.advance(bestMove), mrXLocation, board.getAvailableMoves().size());;
-        int score;
+        int bestScore = new Minimax().score(board.advance(bestMove), mrXLocation, board.getAvailableMoves().size());
+        Move tryMove;
+        int tryScore;
+        int time = 10;
 
         for (Move move : board.getAvailableMoves()) {
-            score = new Minimax().searchBestScore(board.advance(move), depth-1, alpha, beta, isMrX, mrXLocation, numMoves);
-            alpha = max(alpha, score);
+            tryMove = new Minimax().getBestMove(board.advance(move), depth-1, mrXLocation, (long) 10);
+            tryScore = new Minimax().score(board.advance(move), mrXLocation, board.getAvailableMoves().size());
+            alpha = max(alpha, tryScore);
 
             // If the score is better, set the move as the best one
-            if (score > bestScore) {
-                System.out.println("Found better move with score: " + score);
-                bestScore = score;
-                bestMove = move;
+            if (tryScore > bestScore) {
+                System.out.println("Found better move with score: " + tryScore);
+                bestScore = tryScore;
+                bestMove = tryMove;
 
                 // Add memory in here
             }

@@ -35,8 +35,8 @@ public class Minimax {
             return score(state, mrXLocation, mrXAvailableMovesCount);
         // If the time elapsed (ms) is larger than the time-limit (minus a buffer), start exiting
         // The current buffer is 2 SECONDS - best to tweak when testing so it doesn't take forever
-        //if ((System.currentTimeMillis() - startTime > (maxTime - 20) * 1000))
-        //    return score(state, mrXLocation, mrXAvailableMovesCount);
+        if ((System.currentTimeMillis() - startTime > (maxTime - 20) * 1000))
+            return score(state, mrXLocation, mrXAvailableMovesCount);
 
 
         maxDepth = Math.max(maxDepth, steps - depth + 1);
@@ -102,9 +102,9 @@ public class Minimax {
         System.out.println("Ticket factor is: " + ticketFactor(state));
         System.out.println("Location factor is: " + locationsFactor(state));
 
-        return 15 * distanceFactor(distanceToMrX) +
-                5 * mrXAvailableMovesCount +
-                ticketFactor(state) +
+        return 100 * distanceFactor(distanceToMrX) +
+                mrXAvailableMovesCount +
+                5 * ticketFactor(state) +
                 locationsFactor(state) +
                 //Apply massive penalty if MrX could be caught
                 ((distanceToMrX == 1) ? minusInfinity: 0);
