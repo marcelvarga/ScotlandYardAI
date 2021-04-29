@@ -36,9 +36,9 @@ public class Minimax {
         // If the time elapsed (ms) is larger than the time-limit (minus a buffer), start exiting
 
         // The current buffer is 2 SECONDS - best to tweak when testing so it doesn't take forever
-        if ((System.currentTimeMillis() - startTime > (maxTime - 10) * 1000)){
+        /*if ((System.currentTimeMillis() - startTime > (maxTime - 10) * 1000)){
             System.out.println("RAN OUT OF TIME");
-            return score(state, mrXLocation, mrXAvailableMovesCount);}
+            return score(state, mrXLocation, mrXAvailableMovesCount);}*/
 
 
         maxDepth = Math.max(maxDepth, steps - depth + 1);
@@ -194,6 +194,11 @@ public class Minimax {
             // Moves which INCREASE distance tend to be better
             Collections.sort(movesToCheck, Comparator.comparingInt(move -> d.getDistances().get(getDest(move))));
             Collections.reverse(movesToCheck);
+
+            ArrayList<Move> temp = movesToCheck;
+            temp.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
+
+            if (!temp.isEmpty()) return temp;
 
             return movesToCheck;
         }
