@@ -4,9 +4,9 @@ import uk.ac.bris.cs.scotlandyard.model.*;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.Move.*;
 
-
-
 import java.util.*;
+
+@SuppressWarnings("UnstableApiUsage")
 
 public class Minimax {
 
@@ -136,7 +136,8 @@ public class Minimax {
 
         int score = 0;
         for (int i = 0; i < 5; i++) {
-            int num = tickets.get().getCount(ScotlandYard.Ticket.values()[i]);
+            assert tickets.orElse(null) != null;
+            int num = tickets.orElse(null).getCount(ScotlandYard.Ticket.values()[i]);
             // A hefty penalty is applied when MrX runs out of a ticket type
             if (num == 0) score -= 50;
             else score += multipliers[i] * num;
@@ -186,13 +187,13 @@ public class Minimax {
         FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
 
         // Remove double moves if no detective is closer than 2 moves away from MrX
-        temp.removeIf(m -> ((d.getDistances().get(getDest(m)) > 2) && ((boolean)m.visit(isDoubleMoveVisitor))));
+        temp.removeIf(m -> ((d.getDistances().get(getDest(m)) > 2) && (m.visit(isDoubleMoveVisitor))));
 
         // Remove moves that would get MrX immediately caught
         temp.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
 
         if (!temp.isEmpty()) {
-            Collections.sort(temp, Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
+            temp.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
             return temp;
         }
         return allMoves;
@@ -209,7 +210,7 @@ public class Minimax {
 
         // Pick one of the "best" moves to investigate first
         // Moves which DECREASE distance tend to be better
-        Collections.sort(allMoves, Comparator.comparingInt(move -> distances.get(getDest(move))));
+        allMoves.sort(Comparator.comparingInt(move -> distances.get(getDest(move))));
 
         allMoves.removeIf(m -> (getDest(m) != getDest(allMoves.get(0))));
 

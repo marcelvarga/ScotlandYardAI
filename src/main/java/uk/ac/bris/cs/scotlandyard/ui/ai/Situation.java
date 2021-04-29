@@ -1,19 +1,16 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import uk.ac.bris.cs.scotlandyard.model.*;
-import static uk.ac.bris.cs.scotlandyard.model.Move.*;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Optional;
 
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.SECRET;
+
+@SuppressWarnings("UnstableApiUsage")
 
 // Creates possible locations of Moriarty
 // Used by Moriarty to optimise number of possible locations
@@ -50,7 +47,7 @@ public class Situation {
     }
 
     private ArrayList<Integer> getSingleMovesWithTicket(int source, ScotlandYard.Ticket ticket) {
-        ArrayList<Integer> output = new ArrayList();
+        ArrayList<Integer> output = new ArrayList<>();
         GameSetup setup = state.getSetup();
         ImmutableSet<Piece> detectiveLocations = state.getPlayers();
 
