@@ -21,7 +21,7 @@ public class Sherlock implements Ai {
     public Move pickMove(@Nonnull Board board, Pair<Long, TimeUnit> timeoutPair) {
         var moves = board.getAvailableMoves().asList();
 
-        return new Minimax().getBestMove((Board.GameState) board, 3, 1, timeoutPair.left(), false);
+        return new Minimax().getBestMove(new Situation((Board.GameState) board), 3, 1, timeoutPair.left(), false);
 
     }
 }

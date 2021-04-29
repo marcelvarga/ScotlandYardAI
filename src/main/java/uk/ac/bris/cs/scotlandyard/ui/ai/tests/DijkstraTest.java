@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
+import uk.ac.bris.cs.scotlandyard.model.GameSetup;
+import uk.ac.bris.cs.scotlandyard.model.Player;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.Detective.BLUE;
@@ -20,7 +22,7 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultDetectiveTick
  */
 public class DijkstraTest extends TestBase{
 
-
+    /*
     // MrX related tests
 
     @Test public void testMrXDoubleMoveIntermediateMovesOmittedIfDestinationOccupiedByDetectives() {
@@ -239,6 +241,7 @@ public class DijkstraTest extends TestBase{
                 x2(MRX, 104, SECRET, 116, SECRET, 127),
                 x2(MRX, 104, SECRET, 116, BUS, 127));
     }
+    */
 
 
 }

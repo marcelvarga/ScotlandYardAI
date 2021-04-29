@@ -26,13 +26,13 @@ public class Minimax {
         this.startTime = System.currentTimeMillis();
     }
 
-    public int searchBestScore(Board.GameState state, int depth, int alpha, int beta, boolean isMrX, int mrXLocation, int mrXAvailableMovesCount) {
+    public int searchBestScore(Situation situation, int depth, int alpha, int beta, boolean isMrX, int mrXLocation, int mrXAvailableMovesCount) {
         // Stop searching if the depth is zero, there's a winner or the time's nearly up
 
         if (depth == 0)
-            return score(state, mrXLocation, mrXAvailableMovesCount);
-        if (!state.getWinner().isEmpty())
-            return score(state, mrXLocation, mrXAvailableMovesCount);
+            return score(situation, mrXLocation, mrXAvailableMovesCount);
+        if (!situation.getWinner().isEmpty())
+            return score(situation, mrXLocation, mrXAvailableMovesCount);
         // If the time elapsed (ms) is larger than the time-limit (minus a buffer), start exiting
 
         // The current buffer is 2 SECONDS - best to tweak when testing so it doesn't take forever
@@ -43,15 +43,15 @@ public class Minimax {
 
         maxDepth = Math.max(maxDepth, steps - depth + 1);
         if (isMrX) {
-            mrXAvailableMovesCount = state.getAvailableMoves().size();
+            mrXAvailableMovesCount = situation.getAvailableMoves().size();
             int maxEval = minusInfinity;
-            ArrayList<Move> movesToCheck = filterMrXMoves(state, mrXLocation);
+            ArrayList<Move> movesToCheck = filterMrXMoves(situation, mrXLocation);
 
             for (Move currMove : movesToCheck)
                 if (currMove.visit(new FunctionalVisitor<>(m -> true, m -> true))) {
                     verifiedMoves++;
                     int eval = searchBestScore(
-                            state.advance(currMove),
+                            situation.advance(currMove),
                             depth - 1,
                             alpha,
                             beta,
@@ -71,15 +71,15 @@ public class Minimax {
             return maxEval;
 
         } else {
-            boolean isLastDetective = checkIfLastDetective(state);
+            boolean isLastDetective = checkIfLastDetective(situation);
 
             int minEval = plusInfinity;
 
-            ArrayList<Move> movesToCheck = filterDetectiveMoves(state, mrXLocation);
+            ArrayList<Move> movesToCheck = filterDetectiveMoves(situation, mrXLocation);
             for (Move currMove : movesToCheck) {
                 verifiedMoves++;
                 int eval = searchBestScore(
-                        state.advance(currMove),
+                        situation.advance(currMove),
                         depth,
                         alpha,
                         beta,
@@ -99,12 +99,12 @@ public class Minimax {
         }
     }
 
-    public int score(Board.GameState state, int mrXLocation, int mrXAvailableMovesCount) {
-        int distanceToMrX = dijkstraCache.getDistance(state, getDetectiveLocations(state), mrXLocation);
+    public int score(Situation situation, int mrXLocation, int mrXAvailableMovesCount) {
+        int distanceToMrX = dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), mrXLocation);
         /*System.out.println("Distance factor is: " + 15 * distanceFactor(distanceToMrX));
         System.out.println("MrXMoves factor is: " + 5 * mrXAvailableMovesCount);
-        System.out.println("Ticket factor is: " + ticketFactor(state));
-        System.out.println("Location factor is: " + locationsFactor(state));*/
+        System.out.println("Ticket factor is: " + ticketFactor(situation));
+        System.out.println("Location factor is: " + locationsFactor(situation));*/
         return 100 * distanceFactor(distanceToMrX) /*+
                 5 * mrXAvailableMovesCount +
                 ticketFactor(state) +
@@ -146,18 +146,18 @@ public class Minimax {
         return score;
     }
 
-    public Move getBestMove(Board.GameState state, int steps, int mrXLocation, Long maxTime, boolean mrXIsCaller) {
+    public Move getBestMove(Situation situation, int steps, int mrXLocation, Long maxTime, boolean mrXIsCaller) {
         this.maxTime = maxTime;
         this.steps = steps;
         this.mrXIsCaller = mrXIsCaller;
-        searchBestScore(state, steps, minusInfinity, plusInfinity, mrXIsCaller, mrXLocation, 0);
+        searchBestScore(situation, steps, minusInfinity, plusInfinity, mrXIsCaller, mrXLocation, 0);
         System.out.println("MrX's location is: " + getDest(bestMove));
-        System.out.println("Minimum distance to MrX is: " + dijkstraCache.getDistance(state, getDetectiveLocations(state), getDest(bestMove)));
+        System.out.println("Minimum distance to MrX is: " + dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), getDest(bestMove)));
         System.out.println("Number of verified moves: " + verifiedMoves);
         System.out.println("Looking " + maxDepth + " steps ahead");
         System.out.println("Size of Dijkstra Cache is: " + dijkstraCache.getSize());
         System.out.printf("Time elapsed: %.3f seconds%n", ((System.currentTimeMillis() - startTime) / (float) 1000));
-        System.out.printf("Score of chosen move: " + score(state, getDest(bestMove), 0) + "%n");
+        System.out.printf("Score of chosen move: " + score(situation, getDest(bestMove), 0) + "%n");
 
         return bestMove;
     }
@@ -167,8 +167,8 @@ public class Minimax {
     }
 
     // Checks the available moves of the state to see if there are other players left to make a move in the current round
-    private boolean checkIfLastDetective(Board.GameState state) {
-        ArrayList<Move> moves = new ArrayList<>(state.getAvailableMoves().asList());
+    private boolean checkIfLastDetective(Situation situation) {
+        ArrayList<Move> moves = new ArrayList<>(situation.getAvailableMoves().asList());
         if (moves.isEmpty()) return true;
         Piece firstPiece = moves.get(0).commencedBy();
         for (Move move : moves) {
@@ -177,10 +177,10 @@ public class Minimax {
         return true;
     }
 
-    private ArrayList<Move> filterMrXMoves(Board.GameState state, int mrXLocation) {
-        ArrayList<Move> allMoves = new ArrayList<>(state.getAvailableMoves().asList());
+    private ArrayList<Move> filterMrXMoves(Situation situation, int mrXLocation) {
+        ArrayList<Move> allMoves = new ArrayList<>(situation.getAvailableMoves().asList());
         ArrayList<Move> movesToCheck = new ArrayList<>();
-        Dijkstra d = new Dijkstra(state.getSetup().graph, getDetectiveLocations(state), mrXLocation, true);
+        Dijkstra d = new Dijkstra(situation.getSetup().graph, getDetectiveLocations(situation), mrXLocation, true);
 
         ArrayList<Move> temp = new ArrayList<>(allMoves);
 
@@ -199,13 +199,13 @@ public class Minimax {
         return allMoves;
     }
 
-    private ArrayList<Move> filterDetectiveMoves(Board.GameState state, int mrXLocation) {
+    private ArrayList<Move> filterDetectiveMoves(Situation situation, int mrXLocation) {
 
-        ArrayList<Move> allMoves = new ArrayList<>(state.getAvailableMoves().asList());
+        ArrayList<Move> allMoves = new ArrayList<>(situation.getAvailableMoves().asList());
         Piece currPiece = allMoves.get(0).commencedBy();
         Integer detectiveLocation = allMoves.get(0).source();
 
-        ArrayList<Integer> distances = new Dijkstra(state.getSetup().graph, new ArrayList<>(Arrays.asList(mrXLocation)), detectiveLocation, false).getDistances();
+        ArrayList<Integer> distances = new Dijkstra(situation.getSetup().graph, new ArrayList<>(Arrays.asList(mrXLocation)), detectiveLocation, false).getDistances();
         allMoves.removeIf(m -> !(m.commencedBy().equals(currPiece)));
 
         // Pick one of the "best" moves to investigate first
@@ -218,12 +218,12 @@ public class Minimax {
 
     }
 
-    private ArrayList<Integer> getDetectiveLocations(Board.GameState state) {
+    private ArrayList<Integer> getDetectiveLocations(Situation situation) {
         ArrayList<Integer> detectiveLocations = new ArrayList<>();
-        ArrayList<Piece> pieces = new ArrayList<>(state.getPlayers());
+        ArrayList<Piece> pieces = new ArrayList<>(situation.getPlayers());
         for (Piece piece : pieces)
             if (piece.isDetective()) {
-                Optional<Integer> location = state.getDetectiveLocation((Piece.Detective) piece);
+                Optional<Integer> location = situation.getDetectiveLocation((Piece.Detective) piece);
                 location.ifPresent(detectiveLocations::add);
             }
         return detectiveLocations;
