@@ -26,6 +26,7 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultMrXTickets;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.readGraph;
 
 
+
 class DijkstraTest {
 
     Player mrX = new Player(MRX, defaultMrXTickets(), 3);
