@@ -180,17 +180,24 @@ public class Minimax {
     private ArrayList<Move> filterMrXMoves(Situation situation, int mrXLocation) {
         ArrayList<Move> allMoves = new ArrayList<>(situation.getAvailableMoves().asList());
         ArrayList<Move> movesToCheck = new ArrayList<>();
-        Dijkstra d = new Dijkstra(situation.getSetup().graph, getDetectiveLocations(situation), mrXLocation, true);
+        Dijkstra d = new Dijkstra(situation.getState().getSetup().graph, getDetectiveLocations(situation), mrXLocation, true);
 
         ArrayList<Move> temp = new ArrayList<>(allMoves);
 
         FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
+
+        for (Move m : temp) {
+            if ((d.getDistances().get(getDest(m)) != 1) && (d.getDistances().get(getDest(m)) != 1000))
+            System.out.println(d.getDistances().get(getDest(m)));
+        }
 
         // Remove double moves if no detective is closer than 2 moves away from MrX
         temp.removeIf(m -> ((d.getDistances().get(getDest(m)) > 2) && (m.visit(isDoubleMoveVisitor))));
 
         // Remove moves that would get MrX immediately caught
         temp.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
+
+        //System.out.println(temp);
 
         if (!temp.isEmpty()) {
             temp.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
