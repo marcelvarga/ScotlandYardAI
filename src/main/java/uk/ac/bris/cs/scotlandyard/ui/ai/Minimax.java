@@ -198,7 +198,10 @@ public class Minimax {
             ArrayList<Move> temp = movesToCheck;
             temp.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
 
-            if (!temp.isEmpty()) return temp;
+            if (!temp.isEmpty()) {
+                System.out.println("Reduced movesToCheck from " + movesToCheck.size() + " moves to " + temp.size() + " moves");
+                return temp;
+            }
 
             return movesToCheck;
         }
