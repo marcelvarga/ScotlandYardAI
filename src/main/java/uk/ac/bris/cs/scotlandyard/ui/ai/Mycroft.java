@@ -28,7 +28,7 @@ public class Mycroft implements Ai {
             Pair<Long, TimeUnit> timeoutPair) {
 
         var moves = board.getAvailableMoves().asList();
-        return getBestMove((Board.GameState) board, 3, moves.get(0).source(), timeoutPair.left());
+        return getBestMove((Board.GameState) board, 4, moves.get(0).source(), timeoutPair.left());
     }
 
     @Nonnull

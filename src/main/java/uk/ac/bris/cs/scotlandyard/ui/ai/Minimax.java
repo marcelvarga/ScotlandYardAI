@@ -72,8 +72,6 @@ public class Minimax {
 
         } else {
             boolean isLastDetective = checkIfLastDetective(state);
-            int changeDepth = 0;
-            if (isLastDetective) changeDepth = 1;
 
             int minEval = plusInfinity;
 
@@ -183,29 +181,20 @@ public class Minimax {
         ArrayList<Move> movesToCheck = new ArrayList<>();
         Dijkstra d = new Dijkstra(state.getSetup().graph, getDetectiveLocations(state), mrXLocation, true);
 
-        // Omit doubleMoves if mrX isn't close to being caught (detective more than 2 nodes away)
-        if (d.getDistToDestination() > 2) {
-            for (Move move : allMoves) {
-                boolean isSingleMove = move.visit(new Move.FunctionalVisitor<>(m -> true, m -> false));
-                if (isSingleMove)
-                    movesToCheck.add(move);
-            }
-            // Pick one of the "best" moves to investigate first
-            // Moves which INCREASE distance tend to be better
-            Collections.sort(movesToCheck, Comparator.comparingInt(move -> d.getDistances().get(getDest(move))));
-            Collections.reverse(movesToCheck);
+        ArrayList<Move> temp = new ArrayList<>(allMoves);
 
-            ArrayList<Move> temp = movesToCheck;
-            temp.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
+        FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
 
-            if (!temp.isEmpty()) {
-                System.out.println("Reduced movesToCheck from " + movesToCheck.size() + " moves to " + temp.size() + " moves");
-                return temp;
-            }
+        // Remove double moves if no detective is closer than 2 moves away from MrX
+        temp.removeIf(m -> ((d.getDistances().get(getDest(m)) > 2) && ((boolean)m.visit(isDoubleMoveVisitor))));
 
-            return movesToCheck;
+        // Remove moves that would get MrX immediately caught
+        temp.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
+
+        if (!temp.isEmpty()) {
+            Collections.sort(temp, Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
+            return temp;
         }
-
         return allMoves;
     }
 
@@ -216,22 +205,15 @@ public class Minimax {
         Integer detectiveLocation = allMoves.get(0).source();
 
         ArrayList<Integer> distances = new Dijkstra(state.getSetup().graph, new ArrayList<>(Arrays.asList(mrXLocation)), detectiveLocation, false).getDistances();
-
-        ArrayList<Move> currDetectiveMoves = new ArrayList<>();
-        for (Move move : allMoves)
-            if (move.commencedBy() == currPiece)
-                currDetectiveMoves.add(move);
+        allMoves.removeIf(m -> !(m.commencedBy().equals(currPiece)));
 
         // Pick one of the "best" moves to investigate first
         // Moves which DECREASE distance tend to be better
-        Collections.sort(currDetectiveMoves, Comparator.comparingInt(move -> distances.get(getDest(move))));
+        Collections.sort(allMoves, Comparator.comparingInt(move -> distances.get(getDest(move))));
 
-        ArrayList<Move> movesToCheck = new ArrayList<>();
-        for (Move move : currDetectiveMoves)
-            if (distances.get(getDest(move)).equals(distances.get(getDest(currDetectiveMoves.get(0)))))
-                movesToCheck.add(move);
+        allMoves.removeIf(m -> (getDest(m) != getDest(allMoves.get(0))));
 
-        return movesToCheck;
+        return allMoves;
 
     }
 
@@ -243,7 +225,6 @@ public class Minimax {
                 Optional<Integer> location = state.getDetectiveLocation((Piece.Detective) piece);
                 location.ifPresent(detectiveLocations::add);
             }
-        //Collections.sort(detectiveLocations);
         return detectiveLocations;
 
     }
