@@ -109,7 +109,7 @@ public class Minimax {
                 50 * distanceFactor(distanceToMrX) +
                 0.5 * mrXAvailableMovesCount +
                 0.1 * ticketFactor(situation) +
-                Math.pow(situation.numPossibleLocations(), 0.5) +
+                10 * Math.pow(situation.numPossibleLocations(), 0.8) +
 
                 //Apply massive penalty if MrX could be caught
                 ((distanceToMrX == 1) ? minusInfinity: 0));
