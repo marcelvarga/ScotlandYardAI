@@ -109,7 +109,7 @@ public class Minimax {
                 50 * distanceFactor(distanceToMrX) +
                 0.5 * mrXAvailableMovesCount +
                 0.1 * ticketFactor(situation) +
-                5 * Math.pow(situation.numPossibleLocations(), 0.5) +
+                10 * Math.pow(situation.numPossibleLocations(), 0.7) +
 
                 //Apply massive penalty if MrX could be caught
                 ((distanceToMrX == 1) ? minusInfinity: 0));
@@ -164,7 +164,7 @@ public class Minimax {
         System.out.println("Distance factor: " + 50 * distanceFactor(distanceToMrX));
         System.out.printf("MrXMoves factor: %.2f\n", 0.5 * mrXAvailableMovesCount);
         System.out.printf("Ticket factor: %.2f\n", 0.1 * ticketFactor(situation));
-        System.out.printf("Location factor: %.2f\n", 5 * Math.pow(situation.numPossibleLocations(), 0.5));
+        System.out.printf("Location factor: %.2f\n", 10 * Math.pow(situation.numPossibleLocations(), 0.7));
         System.out.println("Penalty: " + (distanceToMrX == 1));
 
         return bestMove;
