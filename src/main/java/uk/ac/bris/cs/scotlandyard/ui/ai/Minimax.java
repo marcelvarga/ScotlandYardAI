@@ -101,15 +101,15 @@ public class Minimax {
 
     public int score(Situation situation, int mrXLocation, int mrXAvailableMovesCount) {
         int distanceToMrX = dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), mrXLocation);
-        /*System.out.println("Distance factor is: " + 15 * distanceFactor(distanceToMrX));
-        System.out.println("MrXMoves factor is: " + 5 * mrXAvailableMovesCount);
-        System.out.println("Ticket factor is: " + ticketFactor(situation));
-        System.out.println("Location factor is: " + locationsFactor(situation));*/
+        /*System.out.println("Distance factor is: " + 50 * distanceFactor(distanceToMrX));
+        System.out.println("MrXMoves factor is: " + 0.5 * mrXAvailableMovesCount);
+        System.out.println("Ticket factor is: " + 0.1 * ticketFactor(situation));
+        System.out.println("Location factor is: " + 5 * Math.pow(situation.numPossibleLocations(), 0.5));*/
         return (int) (
                 50 * distanceFactor(distanceToMrX) +
                 0.5 * mrXAvailableMovesCount +
                 0.1 * ticketFactor(situation) +
-                10 * Math.pow(situation.numPossibleLocations(), 0.8) +
+                5 * Math.pow(situation.numPossibleLocations(), 0.5) +
 
                 //Apply massive penalty if MrX could be caught
                 ((distanceToMrX == 1) ? minusInfinity: 0));
@@ -159,11 +159,12 @@ public class Minimax {
         int distanceToMrX = dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), mrXLocation);
         int mrXAvailableMovesCount = situation.getAvailableMoves().size();
         System.out.println("\n------------Score breakdown------------");
-        System.out.printf("Score of chosen move: " + score(situation, getDest(bestMove), 0) + "%n");
+        System.out.println("Best Move: " + bestMove.toString());
+        System.out.printf("Score of chosen move: " + score(situation, getDest(bestMove), mrXAvailableMovesCount) + "%n");
         System.out.println("Distance factor: " + 50 * distanceFactor(distanceToMrX));
         System.out.printf("MrXMoves factor: %.2f\n", 0.5 * mrXAvailableMovesCount);
         System.out.printf("Ticket factor: %.2f\n", 0.1 * ticketFactor(situation));
-        System.out.printf("Location factor: %.2f\n", Math.pow(situation.numPossibleLocations(), 0.5));
+        System.out.printf("Location factor: %.2f\n", 5 * Math.pow(situation.numPossibleLocations(), 0.5));
         System.out.println("Penalty: " + (distanceToMrX == 1));
 
         return bestMove;
@@ -197,6 +198,15 @@ public class Minimax {
 
         // Remove moves that would get MrX immediately caught
         temp.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
+
+        // Remove duplicate double moves that use the same tickets IN ORDER and end at the same location
+        // TODO
+
+        // Remove moves that reduce MrX's possible locations to 1
+        // This is quite processing heavy, so only run if MrX is in a pickle (only 4 possibleLocations)
+        if (situation.numPossibleLocations() < 5) {
+            temp.removeIf(m -> situation.advance(m).numPossibleLocations() == 1);
+        }
 
         if (!temp.isEmpty()) {
             temp.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
