@@ -230,6 +230,12 @@ public class Minimax {
 
         allMoves.removeIf(m -> (getDest(m) != getDest(allMoves.get(0))));
 
+        // Remove moves that, if the detective can land on a possible location, don't
+        // TODO
+        if (false) {
+            allMoves.removeIf(m -> !situation.possibleLocations().contains(getDest(m)));
+        }
+
         return allMoves;
 
     }
