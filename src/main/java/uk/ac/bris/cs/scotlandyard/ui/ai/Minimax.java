@@ -202,9 +202,11 @@ public class Minimax {
         // Remove duplicate double moves that use the same tickets IN ORDER and end at the same location
         // TODO
 
-        // Remove moves that reduce MrX's possible locations to 1
-        // This is quite processing heavy, so only run if MrX is in a pickle (only 4 possibleLocations)
-        if (situation.numPossibleLocations() < 5) {
+        // Remove moves that reduce MrX's possible locations to 1 UNLESS he's going into a reveal turn
+        // TODO
+        // Even though this seems bad, using doubles on the first two reveal turns might be his comeuppance later on
+        // This is quite processing heavy, so only run if MrX is in a pickle (only 5 possibleLocations)
+        if (situation.numPossibleLocations() < 6) {
             temp.removeIf(m -> situation.advance(m).numPossibleLocations() == 1);
         }
 
@@ -232,7 +234,7 @@ public class Minimax {
 
         // Remove moves that, if the detective can land on a possible location, don't
         // TODO
-        if (false) {
+        if (allMoves.stream().anyMatch(m -> situation.possibleLocations().contains(getDest(m)))) {
             allMoves.removeIf(m -> !situation.possibleLocations().contains(getDest(m)));
         }
 
