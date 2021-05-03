@@ -22,17 +22,23 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.SECRET;
 public class Situation {
     Board.GameState state;
     ArrayList<Integer> possibleLocations;
+    int currentRound;
+    boolean isRevealTurn;
 
     // Used when initialising the Situation for the first time
     public Situation(Board.GameState state) {
         this.state = state;
         this.possibleLocations = new ArrayList<>(Arrays.asList(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
+        this.currentRound = 0;
+        this.isRevealTurn = isRevealTurn();
     }
 
     // Used when advancing a situation
-    public Situation(Board.GameState state, ArrayList<Integer> possibleLocations) {
+    public Situation(Board.GameState state, ArrayList<Integer> possibleLocations, Integer currentRound) {
         this.state = state;
         this.possibleLocations = possibleLocations;
+        this.currentRound = currentRound + 1;
+        this.isRevealTurn = isRevealTurn();
     }
 
     public ArrayList<Integer> possibleLocations() {
@@ -84,8 +90,9 @@ public class Situation {
         for (int destination : setup.graph.adjacentNodes(source)) {
 
             // You cannot move onto a detective
-            //if (detectiveLocations.stream().anyMatch(d -> d.isDetective()
-            //          && (Optional.get(state.getDetectiveLocation((Piece.Detective) d)) == destination))) continue;
+            //if (detectiveLocations.stream().anyMatch(
+            //        d -> d.isDetective() &&
+            //                (Optional.get(state.getDetectiveLocation((Piece.Detective) d)) == destination))) continue;
 
             // Secret tickets can move you anywhere
             if (ticket == SECRET) {
@@ -102,6 +109,10 @@ public class Situation {
         }
         return output;
     }
+
+    private Boolean isRevealTurn() { return state.getSetup().rounds.get(currentRound); }
+
+    public Boolean getIsRevealTurn() { return isRevealTurn; }
 
     public ImmutableSet<Move> getAvailableMoves() {
         return state.getAvailableMoves();
@@ -123,8 +134,7 @@ public class Situation {
         return state;
     }
 
-    // Use progress instead of advance to update possible locations
     public Situation advance(Move move) {
-        return new Situation(state.advance(move), updatePossibleLocations(move));
+        return new Situation(state.advance(move), updatePossibleLocations(move), currentRound);
     }
 }

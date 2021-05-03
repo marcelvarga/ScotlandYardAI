@@ -203,10 +203,9 @@ public class Minimax {
         // TODO
 
         // Remove moves that reduce MrX's possible locations to 1 UNLESS he's going into a reveal turn
-        // TODO
         // Even though this seems bad, using doubles on the first two reveal turns might be his comeuppance later on
         // This is quite processing heavy, so only run if MrX is in a pickle (only 5 possibleLocations)
-        if (situation.numPossibleLocations() < 6) {
+        if (situation.numPossibleLocations() < 6 && !situation.getIsRevealTurn()) {
             temp.removeIf(m -> situation.advance(m).numPossibleLocations() == 1);
         }
 
