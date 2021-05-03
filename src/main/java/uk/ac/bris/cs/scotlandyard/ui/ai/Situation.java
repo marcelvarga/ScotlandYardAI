@@ -66,6 +66,11 @@ public class Situation {
         ArrayList<Integer> output = new ArrayList<>();
 
         if(move.commencedBy() == MRX) {
+
+            if (isRevealTurn) {
+                return new ArrayList<>((state.getMrXTravelLog().get(currentRound).location()).orElse(0));
+            }
+
             for (Integer location : input) {
                 output.addAll(getSingleMovesWithTicket(location, Iterables.get(move.tickets(), 0)));
             }
