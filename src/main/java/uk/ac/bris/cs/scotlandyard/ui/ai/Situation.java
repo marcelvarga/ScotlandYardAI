@@ -21,28 +21,29 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.SECRET;
 
 public class Situation {
     Board.GameState state;
-    ArrayList<Integer> possibleLocations;
+    // Used to prevent duplicates
+    LinkedHashSet<Integer> possibleLocations;
     int currentRound;
     boolean isRevealTurn;
 
     // Used when initialising the Situation for the first time
     public Situation(Board.GameState state) {
         this.state = state;
-        this.possibleLocations = new ArrayList<>(Arrays.asList(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
-        this.currentRound = 0;
+        this.possibleLocations = new LinkedHashSet<>(Arrays.asList(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
+        this.currentRound = state.getMrXTravelLog().size();
         this.isRevealTurn = isRevealTurn();
     }
 
     // Used when advancing a situation
-    public Situation(Board.GameState state, ArrayList<Integer> possibleLocations, Integer currentRound) {
+    public Situation(Board.GameState state, LinkedHashSet<Integer> possibleLocations, Integer currentRound, Boolean doAdvance) {
         this.state = state;
         this.possibleLocations = possibleLocations;
-        this.currentRound = currentRound + 1;
+        this.currentRound = currentRound + (doAdvance ? 1 : 0);
         this.isRevealTurn = isRevealTurn();
     }
 
     public ArrayList<Integer> possibleLocations() {
-        return possibleLocations;
+        return new ArrayList<>(possibleLocations);
     }
 
     public int numPossibleLocations() {
@@ -61,26 +62,45 @@ public class Situation {
         }
     }*/
 
-    private ArrayList<Integer> updatePossibleLocations(Move move) {
-        ArrayList<Integer> input = this.possibleLocations;
-        ArrayList<Integer> output = new ArrayList<>();
+    // Update possibleLocations based on ticket
+    // Input can be either a ticket or a move, depending on which AI is using it
+    private LinkedHashSet<Integer> updatePossibleLocations(Object obj) {
+        if (obj instanceof Move) {
+            return getPossibleLocationsWithMove((Move) obj);
+        } else  {
+            return getPossibleLocationsWithTicket((ScotlandYard.Ticket) obj);
+        }
+    }
+
+    private LinkedHashSet<Integer> getPossibleLocationsWithMove(Move move) {
+        LinkedHashSet<Integer> input = this.possibleLocations;
+        LinkedHashSet<Integer> output = new LinkedHashSet<>();
 
         if(move.commencedBy() == MRX) {
 
             if (isRevealTurn) {
-                return new ArrayList<>((state.getMrXTravelLog().get(currentRound).location()).orElse(0));
+                System.out.println("Resetting possible locations to " + move.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
+                return new LinkedHashSet<Integer>(move.visit((Move.Visitor<Integer>) new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
             }
 
-            for (Integer location : input) {
-                output.addAll(getSingleMovesWithTicket(location, Iterables.get(move.tickets(), 0)));
-            }
-            output.addAll(input);
-            return output;
+            return getPossibleLocationsWithTicket(Iterables.get(move.tickets(), 0));
+
         } else {
-           input.remove(move.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
-           return input;
-
+            input.remove(move.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
+            return input;
         }
+    }
+
+
+    // Only used if MrX uses the ticket
+    private LinkedHashSet<Integer> getPossibleLocationsWithTicket(ScotlandYard.Ticket ticket) {
+        LinkedHashSet<Integer> output = new LinkedHashSet<>();
+
+        for (Integer location : this.possibleLocations) {
+            output.addAll(getSingleMovesWithTicket(location, ticket));
+        }
+
+        return output;
     }
 
     public ImmutableSet<Piece> getWinner(){
@@ -140,6 +160,18 @@ public class Situation {
     }
 
     public Situation advance(Move move) {
-        return new Situation(state.advance(move), updatePossibleLocations(move), currentRound);
+        // If the move is a doubleMove, update in parts
+        if (move.visit(new Move.FunctionalVisitor<>(m -> false, m -> true))) {
+            Iterable<ScotlandYard.Ticket> tickets = move.tickets();
+            this.possibleLocations = updatePossibleLocations(Iterables.get(tickets, 0));
+            return new Situation(state.advance(move), updatePossibleLocations(Iterables.get(tickets, 1)), currentRound + 1, true);
+        }
+
+        // Only advance currentRound if MRX is making a move
+        if (move.commencedBy() == MRX) {
+            return new Situation(state.advance(move), updatePossibleLocations(move), currentRound, true);
+        } else {
+            return new Situation(state.advance(move), updatePossibleLocations(move), currentRound, false);
+        }
     }
 }

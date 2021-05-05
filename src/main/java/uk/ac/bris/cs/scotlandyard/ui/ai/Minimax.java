@@ -165,6 +165,10 @@ public class Minimax {
         System.out.printf("MrXMoves factor: %.2f\n", 0.5 * mrXAvailableMovesCount);
         System.out.printf("Ticket factor: %.2f\n", 0.1 * ticketFactor(situation));
         System.out.printf("Location factor: %.2f\n", 10 * Math.pow(situation.numPossibleLocations(), 0.7));
+        System.out.println("MrX could be at:");
+        for (Integer location : situation.possibleLocations()) {
+            System.out.println(" - " + location);
+        }
         System.out.println("Penalty: " + (distanceToMrX == 1));
 
         return bestMove;
