@@ -5,6 +5,7 @@ import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.Move.*;
 
 import java.util.*;
+import java.util.function.Function;
 
 @SuppressWarnings("UnstableApiUsage")
 
@@ -209,8 +210,8 @@ public class Minimax {
         // Remove moves that reduce MrX's possible locations to 1 UNLESS he's going into a reveal turn
         // Even though this seems bad, using doubles on the first two reveal turns might be his comeuppance later on
         // This is quite processing heavy, so only run if MrX is in a pickle (only 5 possibleLocations)
-        if (situation.numPossibleLocations() < 6 && !situation.getIsRevealTurn()) {
-            temp.removeIf(m -> situation.advance(m).numPossibleLocations() == 1);
+        if (situation.numPossibleLocations() < 6) {
+            temp.removeIf(m -> (situation.advance(m).numPossibleLocations() == 1) && !situation.advance(m).getIsRevealTurn());
         }
 
         if (!temp.isEmpty()) {
