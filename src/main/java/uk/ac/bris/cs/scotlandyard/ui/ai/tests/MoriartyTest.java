@@ -22,10 +22,10 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultDetectiveTick
  */
 public class MoriartyTest extends TestBase{
 
-    // MrX related tests
     Move.FunctionalVisitor<Integer> getDestination = new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2);
 
     @Test public void testMrXAvoidsCatchableLocationsIfPossible() {
+
         var mrX = new Player(MRX, makeTickets(5, 0, 0, 0, 0), 166);
         var blue = new Player(BLUE, defaultDetectiveTickets(), 152);
         var green = new Player(BLUE, defaultDetectiveTickets(), 180);
