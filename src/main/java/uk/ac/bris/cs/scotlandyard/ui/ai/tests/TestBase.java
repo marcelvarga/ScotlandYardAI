@@ -49,6 +49,8 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.readGraph;
 
     private static ImmutableValueGraph<Integer, ImmutableSet<Transport>> defaultGraph;
 
+    @Parameterized.Parameter(0) public ScotlandYard.Factory<Board.GameState> gameStateFactory;
+    @Parameterized.Parameter(1) public ScotlandYard.Factory<Model> modelFactory;
 
     @BeforeClass public static void setUp() {
         try {
