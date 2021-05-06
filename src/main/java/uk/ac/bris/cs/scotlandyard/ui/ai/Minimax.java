@@ -5,7 +5,6 @@ import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.Move.*;
 
 import java.util.*;
-import java.util.function.Function;
 
 @SuppressWarnings("UnstableApiUsage")
 
@@ -29,17 +28,14 @@ public class Minimax {
 
     public int searchBestScore(Situation situation, int depth, int alpha, int beta, boolean isMrX, int mrXLocation, int mrXAvailableMovesCount) {
         // Stop searching if the depth is zero, there's a winner or the time's nearly up
-
-        if (depth == 0)
-            return score(situation, mrXLocation, mrXAvailableMovesCount);
-        if (!situation.getWinner().isEmpty())
-            return score(situation, mrXLocation, mrXAvailableMovesCount);
+        if (depth == 0) return score(situation, mrXLocation, mrXAvailableMovesCount);
+        if (!situation.getWinner().isEmpty()) return score(situation, mrXLocation, mrXAvailableMovesCount);
         // If the time elapsed (ms) is larger than the time-limit (minus a buffer), start exiting
 
-        // The current buffer is 2 SECONDS - best to tweak when testing so it doesn't take forever
-        /*if ((System.currentTimeMillis() - startTime > (maxTime - 10) * 1000)){
+        // The current buffer is 5 SECONDS - best to tweak when testing so it doesn't take forever
+        if ((System.currentTimeMillis() - startTime > (maxTime - 5) * 1000)){
             System.out.println("RAN OUT OF TIME");
-            return score(state, mrXLocation, mrXAvailableMovesCount);}*/
+            return score(situation, mrXLocation, mrXAvailableMovesCount);}
 
 
         maxDepth = Math.max(maxDepth, steps - depth + 1);
@@ -150,14 +146,14 @@ public class Minimax {
         this.steps = steps;
         this.mrXIsCaller = mrXIsCaller;
         searchBestScore(situation, steps, minusInfinity, plusInfinity, mrXIsCaller, mrXLocation, 0);
-        System.out.println("MrX's location is: " + getDest(bestMove));
+        /*System.out.println("MrX's location is: " + getDest(bestMove));
         System.out.println("Minimum distance to MrX is: " + dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), getDest(bestMove)));
         System.out.println("Number of verified moves: " + verifiedMoves);
         System.out.println("Looking " + maxDepth + " steps ahead");
         System.out.println("Size of Dijkstra Cache is: " + dijkstraCache.getSize());
-        System.out.printf("Time elapsed: %.3f seconds%n", ((System.currentTimeMillis() - startTime) / (float) 1000));
+        System.out.printf("Time elapsed: %.3f seconds%n", ((System.currentTimeMillis() - startTime) / (float) 1000));*/
 
-        int distanceToMrX = dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), mrXLocation);
+        /*int distanceToMrX = dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), mrXLocation);
         int mrXAvailableMovesCount = situation.getAvailableMoves().size();
         System.out.println("\n------------Score breakdown------------");
         System.out.println("Best Move: " + bestMove.toString());
@@ -169,9 +165,7 @@ public class Minimax {
         System.out.println("MrX could be at:");
         for (Integer location : situation.possibleLocations()) {
             System.out.println(" - " + location);
-        }
-        System.out.println("Penalty: " + (distanceToMrX == 1));
-
+        }*/
         return bestMove;
     }
 
@@ -191,36 +185,67 @@ public class Minimax {
     }
 
     private ArrayList<Move> filterMrXMoves(Situation situation, int mrXLocation) {
-        ArrayList<Move> allMoves = new ArrayList<>(situation.getAvailableMoves().asList());
+        ArrayList<Move> temp0 = new ArrayList<>(situation.getAvailableMoves().asList());
+        ArrayList<Move> temp1 = new ArrayList<>(temp0);
+
         Dijkstra d = new Dijkstra(situation.getState().getSetup().graph, getDetectiveLocations(situation), mrXLocation, true);
 
-        ArrayList<Move> temp = new ArrayList<>(allMoves);
 
         FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
-
         // Remove double moves if no detective is closer than 2 moves away from MrX
-        temp.removeIf(m -> ((d.getDistances().get(getDest(m)) > 2) && (m.visit(isDoubleMoveVisitor))));
-
+        temp0.removeIf(m -> ((d.getDistances().get(getDest(m)) > 2) && (m.visit(isDoubleMoveVisitor))));
+        if(temp0.isEmpty()) temp0.addAll(temp1);
+            else temp1.clear(); temp1.addAll(temp0);
         // Remove moves that would get MrX immediately caught
-        temp.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
+        temp0.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
+        if(temp0.isEmpty()) temp0.addAll(temp1);
+            else temp1.clear(); temp1.addAll(temp0);
 
+        FunctionalVisitor<Boolean> isAnyTicketSecret = new FunctionalVisitor<>(
+                m -> m.ticket == ScotlandYard.Ticket.SECRET,
+                m -> (m.ticket1 == ScotlandYard.Ticket.SECRET || m.ticket2 == ScotlandYard.Ticket.SECRET)
+        );
+
+        if(situation.isRevealTurnNext()){ temp0.removeIf(m -> m.visit(isAnyTicketSecret));
+
+        if(temp0.isEmpty()) temp0.addAll(temp1);
+            else temp1.clear(); temp1.addAll(temp0);
+        }
         // Remove duplicate double moves that use the same tickets IN ORDER and end at the same location
-        // TODO
+        int len = temp0.size();
+        for (int i = 0; i < len - 1; i++)
+            for (int j = i + 1; j < len; j++)
+                if(sameDestDoubleMoves(temp0.get(i), temp0.get(j))) {
+                    temp0.remove(j);
+                    j--;
+                    len--;
+                }
+        if(temp0.isEmpty()) temp0.addAll(temp1);
+            else temp1.clear(); temp1.addAll(temp0);
 
         // Remove moves that reduce MrX's possible locations to 1 UNLESS he's going into a reveal turn
         // Even though this seems bad, using doubles on the first two reveal turns might be his comeuppance later on
         // This is quite processing heavy, so only run if MrX is in a pickle (only 5 possibleLocations)
         if (situation.numPossibleLocations() < 6) {
-            temp.removeIf(m -> (situation.advance(m).numPossibleLocations() == 1) && !situation.advance(m).getIsRevealTurn());
+            temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() == 1) && !situation.advance(m).getIsRevealTurn());
+            if(temp0.isEmpty()) temp0.addAll(temp1);
         }
 
-        if (!temp.isEmpty()) {
+
+        temp0.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
+        return temp0;
+
+        /*if (!temp.isEmpty()) {
             temp.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
             return temp;
         }
-        return allMoves;
+        return allMoves;*/
     }
 
+    private boolean sameDestDoubleMoves(Move m1, Move m2){
+        if(getDest(m1) != getDest(m2)) return false;
+        return m1.tickets().equals(m2.tickets());
+    }
     private ArrayList<Move> filterDetectiveMoves(Situation situation, int mrXLocation) {
 
         ArrayList<Move> allMoves = new ArrayList<>(situation.getAvailableMoves().asList());

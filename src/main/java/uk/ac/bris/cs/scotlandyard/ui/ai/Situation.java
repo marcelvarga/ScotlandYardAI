@@ -79,8 +79,8 @@ public class Situation {
         if(move.commencedBy() == MRX) {
 
             if (isRevealTurn) {
-                System.out.println("Resetting possible locations to " + move.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
-                return new LinkedHashSet<Integer>(move.visit((Move.Visitor<Integer>) new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
+                //System.out.println("Resetting possible locations to " + move.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
+                return new LinkedHashSet<>(move.visit((Move.Visitor<Integer>) new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
             }
 
             return getPossibleLocationsWithTicket(Iterables.get(move.tickets(), 0));
@@ -158,7 +158,9 @@ public class Situation {
     public Board.GameState getState() {
         return state;
     }
-
+    public boolean isRevealTurnNext(){
+        return state.getSetup().rounds.get(currentRound+1);
+    }
     public Situation advance(Move move) {
         // If the move is a doubleMove, update in parts
         if (move.visit(new Move.FunctionalVisitor<>(m -> false, m -> true))) {
