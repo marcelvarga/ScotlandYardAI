@@ -206,6 +206,7 @@ public class Minimax {
                 m -> (m.ticket1 == ScotlandYard.Ticket.SECRET || m.ticket2 == ScotlandYard.Ticket.SECRET)
         );
 
+        // Remove moves that effectively waste secret tickets
         if(situation.isRevealTurnNext()){ temp0.removeIf(m -> m.visit(isAnyTicketSecret));
 
         if(temp0.isEmpty()) temp0.addAll(temp1);
