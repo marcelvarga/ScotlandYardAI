@@ -15,8 +15,10 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 
 import static uk.ac.bris.cs.scotlandyard.model.Piece.Detective.BLUE;
+import static uk.ac.bris.cs.scotlandyard.model.Piece.Detective.GREEN;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultDetectiveTickets;
+import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultMrXTickets;
 
 
 public class MoriartyTest extends TestBase{
@@ -25,20 +27,17 @@ public class MoriartyTest extends TestBase{
 
     @Test public void testMrXAvoidsCatchableLocationsIfPossible() {
 
-        var mrX = new Player(MRX, makeTickets(5, 0, 0, 0, 0), 166);
-        var blue = new Player(BLUE, defaultDetectiveTickets(), 152);
-        var green = new Player(BLUE, defaultDetectiveTickets(), 180);
         Move.FunctionalVisitor<Integer> getDestination = new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2);
 
-        // only secret moves if only secret move ticket left
-        GameState state = gameStateFactory.build(
-                new GameSetup(standardGraph(), ImmutableList.of(true)),
-                mrX, blue, green);
+        GameState state = gameStateFactory.build(standard24RoundSetup(),
+            new Player(MRX, makeTickets(5, 0, 0, 0, 0), 166),
+            new Player(BLUE, defaultDetectiveTickets(), 152),
+            new Player(GREEN, defaultDetectiveTickets(), 180));
 
         Ai Moriarty = new Moriarty();
 
-        assertEquals(183,
-                Optional.ofNullable(Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).visit(getDestination)));
+        assert(Integer.valueOf(183).equals(
+                Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).visit(getDestination)));
     }
 
 }
