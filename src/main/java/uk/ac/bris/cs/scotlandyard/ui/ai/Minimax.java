@@ -192,11 +192,11 @@ public class Minimax {
 
 
         FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
+
         // Remove double moves if no detective is closer than 2 moves away from MrX
+        // or that would get MrX immediately caught
+        // Both sandwiched together as they're mutually exclusive
         temp0.removeIf(m -> ((d.getDistances().get(getDest(m)) > 2) && (m.visit(isDoubleMoveVisitor))));
-        if(temp0.isEmpty()) temp0.addAll(temp1);
-            else temp1.clear(); temp1.addAll(temp0);
-        // Remove moves that would get MrX immediately caught
         temp0.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
         if(temp0.isEmpty()) temp0.addAll(temp1);
             else temp1.clear(); temp1.addAll(temp0);
@@ -207,11 +207,14 @@ public class Minimax {
         );
 
         // Remove moves that effectively waste secret tickets
-        if(situation.isRevealTurnNext()){ temp0.removeIf(m -> m.visit(isAnyTicketSecret));
+        if(situation.isRevealTurnNext()) {
+            temp0.removeIf(m -> m.visit(isAnyTicketSecret));
 
-        if(temp0.isEmpty()) temp0.addAll(temp1);
-            else temp1.clear(); temp1.addAll(temp0);
+            if (temp0.isEmpty()) temp0.addAll(temp1);
+            else temp1.clear();
+            temp1.addAll(temp0);
         }
+
         // Remove duplicate double moves that use the same tickets IN ORDER and end at the same location
         int len = temp0.size();
         for (int i = 0; i < len - 1; i++)
@@ -247,6 +250,7 @@ public class Minimax {
         if(getDest(m1) != getDest(m2)) return false;
         return m1.tickets().equals(m2.tickets());
     }
+
     private ArrayList<Move> filterDetectiveMoves(Situation situation, int mrXLocation) {
 
         ArrayList<Move> allMoves = new ArrayList<>(situation.getAvailableMoves().asList());
@@ -263,7 +267,6 @@ public class Minimax {
         allMoves.removeIf(m -> (getDest(m) != getDest(allMoves.get(0))));
 
         // Remove moves that, if the detective can land on a possible location, don't
-        // TODO
         if (allMoves.stream().anyMatch(m -> situation.possibleLocations().contains(getDest(m)))) {
             allMoves.removeIf(m -> !situation.possibleLocations().contains(getDest(m)));
         }
