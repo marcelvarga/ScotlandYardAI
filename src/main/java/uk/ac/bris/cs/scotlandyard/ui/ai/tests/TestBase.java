@@ -1,6 +1,7 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai.tests;
 
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.graph.ImmutableValueGraph;
@@ -44,13 +45,20 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.readGraph;
  * Base class for all tests. Contains various helper methods for convenience.
  * This is not a test class and contains no tests here.
  */
-@SuppressWarnings({"SameParameterValue", "UnstableApiUsage"})
-@RunWith(Parameterized.class) abstract class TestBase {
 
-    private static ImmutableValueGraph<Integer, ImmutableSet<Transport>> defaultGraph;
+@SuppressWarnings({"DefaultAnnotationParam", "SameParameterValue", "UnstableApiUsage"})
+@RunWith(Parameterized.class) abstract class TestBase {
 
     @Parameterized.Parameter(0) public ScotlandYard.Factory<Board.GameState> gameStateFactory;
     @Parameterized.Parameter(1) public ScotlandYard.Factory<Model> modelFactory;
+
+    @Parameterized.Parameters(name = "{0}") public static Iterable<ScotlandYard.Factory<?>[]> data() {
+        return uk.ac.bris.cs.scotlandyard.ai.ModelFactories.factories().stream()
+                .map(a -> new ScotlandYard.Factory<?>[]{a.getKey().get(), a.getValue().get()})
+                .collect(ImmutableList.toImmutableList());
+    }
+
+    private static ImmutableValueGraph<Integer, ImmutableSet<Transport>> defaultGraph;
 
     @BeforeClass public static void setUp() {
         try {

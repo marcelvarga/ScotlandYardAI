@@ -10,5 +10,4 @@ import org.junit.runners.Suite;
         DijkstraTest.class
 })
 
-public class AllTest {
-}
+public class AllTest {}
