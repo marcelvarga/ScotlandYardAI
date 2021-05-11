@@ -5,6 +5,7 @@ import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.Move.*;
 
 import java.util.*;
+import java.lang.Integer.*;
 
 @SuppressWarnings("UnstableApiUsage")
 
@@ -187,19 +188,38 @@ public class Minimax {
     private ArrayList<Move> filterMrXMoves(Situation situation, int mrXLocation) {
         ArrayList<Move> temp0 = new ArrayList<>(situation.getAvailableMoves().asList());
         ArrayList<Move> temp1 = new ArrayList<>(temp0);
-
         Dijkstra d = new Dijkstra(situation.getState().getSetup().graph, getDetectiveLocations(situation), mrXLocation, true);
-
-
         FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
 
-        // Remove double moves if no detective is closer than 2 moves away from MrX
-        // or that would get MrX immediately caught
-        // Both sandwiched together as they're mutually exclusive
-        temp0.removeIf(m -> ((d.getDistances().get(getDest(m)) > 2) && (m.visit(isDoubleMoveVisitor))));
-        temp0.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
-        if(temp0.isEmpty()) temp0.addAll(temp1);
+        // Decide how to filter moves based on how far away MrX is at the moment
+        // If MrX is more than 4 distance away, filter to optimise possibleLocations
+        // Otherwise, filter to optimise distance
+        if (d.getDistToDestination() > 4) {
+            System.out.println("Far enuff");
+            temp0.sort(Comparator.comparingInt(move -> -situation.advance(move).numPossibleLocations()));
+            temp0.removeIf(m -> (getDest(m) != getDest(temp0.get(0))));
+
+            temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
+            if(temp0.isEmpty()) temp0.addAll(temp1);
             else temp1.clear(); temp1.addAll(temp0);
+
+            // Remove double moves that go into a reveal turn
+            if(situation.isRevealTurnNextNext()) {
+                temp0.removeIf(m -> m.visit(isDoubleMoveVisitor));
+
+                if (temp0.isEmpty()) temp0.addAll(temp1);
+                else temp1.clear();
+                temp1.addAll(temp0);
+            }
+        } else {
+            temp0.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
+            // Remove double moves if no detective is closer than 2 moves away from MrX
+            // or that would get MrX immediately caught
+            temp0.removeIf(m -> ((d.getDistances().get(getDest(m)) > 2) && (m.visit(isDoubleMoveVisitor))));
+            temp0.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
+            if(temp0.isEmpty()) temp0.addAll(temp1);
+            else temp1.clear(); temp1.addAll(temp0);
+        }
 
         FunctionalVisitor<Boolean> isAnyTicketSecret = new FunctionalVisitor<>(
                 m -> m.ticket == ScotlandYard.Ticket.SECRET,
@@ -235,8 +255,6 @@ public class Minimax {
             if(temp0.isEmpty()) temp0.addAll(temp1);
         }
 
-
-        temp0.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
         return temp0;
 
         /*if (!temp.isEmpty()) {

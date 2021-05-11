@@ -137,6 +137,14 @@ public class Situation {
 
     private Boolean isRevealTurn() { return state.getSetup().rounds.get(currentRound); }
 
+    public boolean isRevealTurnNext(){
+        return state.getSetup().rounds.get(currentRound+1);
+    }
+
+    public boolean isRevealTurnNextNext(){
+        return state.getSetup().rounds.get(currentRound+2);
+    }
+
     public Boolean getIsRevealTurn() { return isRevealTurn; }
 
     public ImmutableSet<Move> getAvailableMoves() {
@@ -158,9 +166,7 @@ public class Situation {
     public Board.GameState getState() {
         return state;
     }
-    public boolean isRevealTurnNext(){
-        return state.getSetup().rounds.get(currentRound+1);
-    }
+
     public Situation advance(Move move) {
         // If the move is a doubleMove, update in parts
         if (move.visit(new Move.FunctionalVisitor<>(m -> false, m -> true))) {
