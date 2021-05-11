@@ -191,7 +191,7 @@ public class Minimax {
         Dijkstra d = new Dijkstra(situation.getState().getSetup().graph, getDetectiveLocations(situation), mrXLocation, true);
         FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
 
-        // Decide how to filter moves based on how far away MrX is at the moment
+        // Decides how to filter moves based on how far away MrX is at the moment
         // If MrX is more than 4 distance away, filter to optimise possibleLocations
         // Otherwise, filter to optimise distance
         if (d.getDistToDestination() > 4) {
