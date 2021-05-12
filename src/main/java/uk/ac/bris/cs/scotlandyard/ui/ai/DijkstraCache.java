@@ -20,7 +20,7 @@ public class DijkstraCache {
 
         if (!transpositionTable.containsKey(playerLocations)) {
 
-            distance = new Dijkstra(state.getSetup().graph, detectiveLocations, mrXLocation, true).getDistToDestination();
+            distance = new Dijkstra(state.getSetup().graph, detectiveLocations, mrXLocation, false).getDistToDestination();
             transpositionTable.put(playerLocations, distance);
         }
         else
@@ -28,5 +28,4 @@ public class DijkstraCache {
 
         return distance;
     }
-
 }

@@ -1,4 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import uk.ac.bris.cs.scotlandyard.model.*;
 
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
@@ -188,7 +190,8 @@ public class Minimax {
     private ArrayList<Move> filterMrXMoves(Situation situation, int mrXLocation) {
         ArrayList<Move> temp0 = new ArrayList<>(situation.getAvailableMoves().asList());
         ArrayList<Move> temp1 = new ArrayList<>(temp0);
-        Dijkstra d = new Dijkstra(situation.getState().getSetup().graph, getDetectiveLocations(situation), mrXLocation, true);
+
+        Dijkstra d = new Dijkstra(situation.getState().getSetup().graph, getDetectiveLocations(situation), mrXLocation, false);
         FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
 
         // Decides how to filter moves based on how far away MrX is at the moment
@@ -197,42 +200,25 @@ public class Minimax {
         if (d.getDistToDestination() > 4) {
             System.out.println("Far enuff");
             temp0.sort(Comparator.comparingInt(move -> -situation.advance(move).numPossibleLocations()));
-            temp0.removeIf(m -> (getDest(m) != getDest(temp0.get(0))));
-
             temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
-            if(temp0.isEmpty()) temp0.addAll(temp1);
-            else temp1.clear(); temp1.addAll(temp0);
+            temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 10));
 
-            // Remove double moves that go into a reveal turn
-            if(situation.isRevealTurnNextNext()) {
-                temp0.removeIf(m -> m.visit(isDoubleMoveVisitor));
-
-                if (temp0.isEmpty()) temp0.addAll(temp1);
-                else temp1.clear();
-                temp1.addAll(temp0);
-            }
         } else {
             temp0.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
             // Remove double moves if no detective is closer than 2 moves away from MrX
             // or that would get MrX immediately caught
             temp0.removeIf(m -> ((d.getDistances().get(getDest(m)) > 2) && (m.visit(isDoubleMoveVisitor))));
             temp0.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
-            if(temp0.isEmpty()) temp0.addAll(temp1);
-            else temp1.clear(); temp1.addAll(temp0);
-        }
 
-        FunctionalVisitor<Boolean> isAnyTicketSecret = new FunctionalVisitor<>(
-                m -> m.ticket == ScotlandYard.Ticket.SECRET,
-                m -> (m.ticket1 == ScotlandYard.Ticket.SECRET || m.ticket2 == ScotlandYard.Ticket.SECRET)
-        );
+        }
+        checkNotEmpty(temp0, temp1);
+
 
         // Remove moves that effectively waste secret tickets
         if(situation.isRevealTurnNext()) {
-            temp0.removeIf(m -> m.visit(isAnyTicketSecret));
+            temp0.removeIf(m -> Iterables.contains(m.tickets(), ScotlandYard.Ticket.SECRET));
 
-            if (temp0.isEmpty()) temp0.addAll(temp1);
-            else temp1.clear();
-            temp1.addAll(temp0);
+            checkNotEmpty(temp0, temp1);
         }
 
         // Remove duplicate double moves that use the same tickets IN ORDER and end at the same location
@@ -244,8 +230,7 @@ public class Minimax {
                     j--;
                     len--;
                 }
-        if(temp0.isEmpty()) temp0.addAll(temp1);
-            else temp1.clear(); temp1.addAll(temp0);
+        checkNotEmpty(temp0, temp1);
 
         // Remove moves that reduce MrX's possible locations to 1 UNLESS he's going into a reveal turn
         // Even though this seems bad, using doubles on the first two reveal turns might be his comeuppance later on
@@ -264,6 +249,11 @@ public class Minimax {
         return allMoves;*/
     }
 
+    private void checkNotEmpty(ArrayList<Move> list0, ArrayList<Move> list1){
+        if (list0.isEmpty()) list0.addAll(list1);
+            else list1.clear();
+        list1.addAll(list0);
+    }
     private boolean sameDestDoubleMoves(Move m1, Move m2){
         if(getDest(m1) != getDest(m2)) return false;
         return m1.tickets().equals(m2.tickets());
