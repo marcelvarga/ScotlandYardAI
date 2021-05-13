@@ -10,9 +10,7 @@ import uk.ac.bris.cs.scotlandyard.model.*;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.ui.ai.Moriarty;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -67,5 +65,18 @@ public class MoriartyTest extends TestBase{
                 Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).tickets(),
                 ScotlandYard.Ticket.SECRET));
     }
+
+    /*@Test public void testMrXDoesNotReducePossibleLocationsToOne() {
+        GameState state = gameStateFactory.build(
+                new GameSetup(standardGraph(), new ImmutableList<Boolean>(List.of(true, false, false, true)),
+                new Player(MRX, defaultMrXTickets(), 166),
+                new Player(BLUE, defaultDetectiveTickets(), 12));
+
+        Ai Moriarty = new Moriarty();
+
+        assert(!Iterables.contains(
+                Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).tickets(),
+                ScotlandYard.Ticket.SECRET));
+    }*/
 
 }

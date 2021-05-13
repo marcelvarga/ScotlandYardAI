@@ -41,11 +41,11 @@ public class Mycroft implements Ai {
 
         // Set a random move to start off with
         Move placeholderMove = moves.get(new Random().nextInt(moves.size()));
-        int placeholderScore = new Minimax().score(situation.advance(placeholderMove), mrXLocation, situation.getAvailableMoves().size());
+        int placeholderScore = new Minimax().score(situation.advance(placeholderMove), mrXLocation);
 
         // Calculate the best first move with a depth 1
         Move bestMove = mtd_f(situation, 1, mrXLocation, moves.size(), placeholderMove, placeholderScore);
-        int bestScore = new Minimax().score(situation.advance(bestMove), mrXLocation, situation.getAvailableMoves().size());
+        int bestScore = new Minimax().score(situation.advance(bestMove), mrXLocation);
 
         Move move;
         int score;
@@ -54,7 +54,7 @@ public class Mycroft implements Ai {
         for (int depth = 2; depth <= maxDepth; depth++) {
             System.out.println("Depth: " + depth);
             move = mtd_f(situation, depth, mrXLocation, moves.size(), bestMove, bestScore);
-            score = new Minimax().score(situation.advance(bestMove), mrXLocation, situation.getAvailableMoves().size());
+            score = new Minimax().score(situation.advance(bestMove), mrXLocation);
 
             if (bestScore < score) {
                 bestMove = move;
@@ -65,14 +65,14 @@ public class Mycroft implements Ai {
         return bestMove;
     }
 
-    private Move alphaBetaMemorise(Situation situation, int depth, int alpha, int beta, boolean isMrX, int mrXLocation, int numMoves) {
+    private Move alphaBetaMemorise(Situation situation, int depth, int alpha, int beta, boolean isMrX, int mrXLocation) {
         ImmutableSet<Move> possibleMoves = situation.getAvailableMoves();
         Move bestMove = possibleMoves.iterator().next();
-        int bestScore = new Minimax().score(situation.advance(bestMove), mrXLocation, situation.getAvailableMoves().size());;
+        int bestScore = new Minimax().score(situation.advance(bestMove), mrXLocation);;
         int score;
 
         for (Move move : situation.getAvailableMoves()) {
-            score = new Minimax().searchBestScore(situation.advance(move), depth-1, alpha, beta, isMrX, mrXLocation, numMoves);
+            score = new Minimax().searchBestScore(situation.advance(move), depth-1, alpha, beta, isMrX, mrXLocation);
             alpha = max(alpha, score);
 
             // If the score is better, set the move as the best one
@@ -96,8 +96,8 @@ public class Mycroft implements Ai {
 
         while (floor < ceiling) {
             beta = max(bestScore, floor + 1);
-            bestMove = alphaBetaMemorise(situation, depth, beta - 1, beta, true, mrXLocation, numMoves);
-            bestScore = new Minimax().score(situation.advance(bestMove), mrXLocation, situation.getAvailableMoves().size());
+            bestMove = alphaBetaMemorise(situation, depth, beta - 1, beta, true, mrXLocation);
+            bestScore = new Minimax().score(situation.advance(bestMove), mrXLocation);
 
             if (bestScore < beta) {
                 ceiling = bestScore;

@@ -9,6 +9,8 @@ import uk.ac.bris.cs.scotlandyard.model.*;
 import java.lang.reflect.Array;
 import java.util.*;
 
+import static java.lang.System.exit;
+import static java.lang.System.setOut;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.SECRET;
 
@@ -48,10 +50,10 @@ public class Situation{
         LinkedHashSet<Integer> output;
         // If no reveal turn has occurred yet
         if (lastReveal == -1) {
-            output = new LinkedHashSet<>(Arrays.asList(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
+            output = new LinkedHashSet<>(List.of(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
             lastReveal = 0;
         } else {
-            output = new LinkedHashSet<>((state.getMrXTravelLog().get(lastReveal-1).location().orElse(0)));
+            output = new LinkedHashSet<>((List.of(state.getMrXTravelLog().get(lastReveal).location().orElse(0))));
         }
 
         LinkedHashSet<Integer> someLocations = new LinkedHashSet<>();
@@ -61,6 +63,8 @@ public class Situation{
                 someLocations.addAll(getSingleMovesWithTicket(location, l.ticket()));
             output.addAll(someLocations);
         }
+
+        if (output.size() == 0) exit(0);
 
         return output;
     }
@@ -77,7 +81,6 @@ public class Situation{
     // Input can be either a ticket or a move, depending on which AI is using it
     private LinkedHashSet<Integer> updatePossibleLocations(Object obj) {
         if (obj instanceof Move) {
-            System.out.println("updatePossibleLocations returns: " + getPossibleLocationsWithMove((Move) obj));
             return getPossibleLocationsWithMove((Move) obj);
         } else  {
             return getPossibleLocationsWithTicket((ScotlandYard.Ticket) obj);
@@ -154,16 +157,13 @@ public class Situation{
 
     // Wrapping GameState part //
     public Situation advance(Move move) {
-        System.out.println(move);
         // If the move is a doubleMove, update in parts
         if (move.visit(new Move.FunctionalVisitor<>(m -> false, m -> true))) {
             Iterable<ScotlandYard.Ticket> tickets = move.tickets();
             ScotlandYard.Ticket t1 = Iterables.get(tickets, 0);
             ScotlandYard.Ticket t2 = Iterables.get(tickets, 1);
             this.possibleLocations = updatePossibleLocations(t1);
-            System.out.println("PossibleLocations now: " + this.possibleLocations);
             this.possibleLocations = updatePossibleLocations(t2);
-            System.out.println("PossibleLocations now: " + this.possibleLocations);
             return new Situation(state.advance(move), this.possibleLocations);
         }
 

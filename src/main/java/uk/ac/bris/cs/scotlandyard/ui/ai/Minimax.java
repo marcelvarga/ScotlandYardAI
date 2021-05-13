@@ -34,19 +34,18 @@ public class Minimax {
         this.startTime = System.currentTimeMillis();
     }
 
-    public int searchBestScore(Situation situation, int depth, int alpha, int beta, boolean isMrX, int mrXLocation, int mrXAvailableMovesCount) {
+    public int searchBestScore(Situation situation, int depth, int alpha, int beta, boolean isMrX, int mrXLocation) {
         // Stop searching if the depth is zero, there's a winner or the time's nearly up
-        if (depth == 0) return score(situation, mrXLocation, mrXAvailableMovesCount);
-        if (!situation.getWinner().isEmpty()) return score(situation, mrXLocation, mrXAvailableMovesCount);
+        if (depth == 0) return score(situation, mrXLocation);
+        if (!situation.getWinner().isEmpty()) return score(situation, mrXLocation);
 
         // If the time elapsed (ms) is larger than the time-limit (minus a buffer), start exiting
         if ((System.currentTimeMillis() - startTime > (maxTime - 5) * 1000)){
-            return score(situation, mrXLocation, mrXAvailableMovesCount);}
+            return score(situation, mrXLocation);}
 
 
         maxDepth = Math.max(maxDepth, steps - depth + 1);
         if (isMrX) {
-            mrXAvailableMovesCount = situation.getAvailableMoves().size();
             int maxEval = minusInfinity;
             ArrayList<Move> movesToCheck = filterMrXMoves(situation, mrXLocation);
 
@@ -59,8 +58,7 @@ public class Minimax {
                             alpha,
                             beta,
                             false,
-                            getDest(currMove),
-                            mrXAvailableMovesCount);
+                            getDest(currMove));
 
                     if (maxEval < eval) {
                         maxEval = eval;
@@ -86,8 +84,7 @@ public class Minimax {
                         alpha,
                         beta,
                         isLastDetective,
-                        mrXLocation,
-                        mrXAvailableMovesCount);
+                        mrXLocation);
 
                 if (minEval > eval) {
                     minEval = eval;
@@ -101,11 +98,11 @@ public class Minimax {
         }
     }
 
-    public int score(Situation situation, int mrXLocation, int mrXAvailableMovesCount) {
+    public int score(Situation situation, int mrXLocation) {
         int distanceToMrX = dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), mrXLocation);
         return (int) (
                 50 * distanceFactor(distanceToMrX) +
-                0.5 * mrXAvailableMovesCount +
+                0.5 * situation.getAvailableMoves().size() +
                 0.1 * ticketFactor(situation) +
                 10 * Math.pow(situation.numPossibleLocations(), 0.7) +
 
@@ -143,7 +140,7 @@ public class Minimax {
         this.maxTime = maxTime;
         this.steps = steps;
         this.mrXIsCaller = mrXIsCaller;
-        searchBestScore(situation, steps, minusInfinity, plusInfinity, mrXIsCaller, mrXLocation, 0);
+        searchBestScore(situation, steps, minusInfinity, plusInfinity, mrXIsCaller, mrXLocation);
         System.out.println("--------------------------------------- New call --------------------------------------------------------------------");
         System.out.println("MrX's location is: " + getDest(bestMove));
         System.out.println("Minimum distance to MrX is: " + dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), getDest(bestMove)));
@@ -188,14 +185,8 @@ public class Minimax {
             temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
             temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 10));*/
         if (d.getDistToDestination() > 4) {
-                System.out.println("Far enuff");
-                temp0.removeIf(m -> (!m.visit(isDoubleMoveVisitor)));
+                temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
                 checkNotEmpty(temp0, temp1);
-                Situation s = situation.advance(temp0.get(0));
-
-                for (Move m : temp0) {
-                    System.out.println(-situation.advance(m).numPossibleLocations());
-                }
                 temp0.sort(Comparator.comparingInt(move -> -situation.advance(move).numPossibleLocations()));
                 temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 10));
         } else {
