@@ -1,27 +1,22 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai.tests;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import io.atlassian.fugue.Pair;
 import org.junit.Test;
 
-import org.junit.runners.Parameterized;
 import uk.ac.bris.cs.scotlandyard.model.*;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.ui.ai.Moriarty;
 import uk.ac.bris.cs.scotlandyard.ui.ai.Situation;
 
-import java.util.*;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
 
 import static uk.ac.bris.cs.scotlandyard.model.Piece.Detective.*;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
-import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.*;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultDetectiveTickets;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultMrXTickets;
 
+@SuppressWarnings("UnstableApiUsage")
 
 public class MoriartyTest extends TestBase{
 
@@ -48,7 +43,7 @@ public class MoriartyTest extends TestBase{
                 new Player(GREEN, defaultDetectiveTickets(), 30));
 
         Ai Moriarty = new Moriarty();
-        Move move = Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS));
+
         assert(!Iterables.contains(
                 Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).tickets(),
                 ScotlandYard.Ticket.SECRET));
