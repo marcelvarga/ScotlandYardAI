@@ -82,6 +82,7 @@ public class Mycroft implements Ai {
                 bestMove = move;
 
                 // Add memory in here
+
             }
         }
 

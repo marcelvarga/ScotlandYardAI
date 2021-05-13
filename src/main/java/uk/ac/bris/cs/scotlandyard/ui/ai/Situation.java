@@ -1,5 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import uk.ac.bris.cs.scotlandyard.model.*;
@@ -26,7 +27,7 @@ public class Situation{
     // Used when initialising the Situation for the first time
     public Situation(Board.GameState state) {
         this.state = state;
-        this.possibleLocations = new LinkedHashSet<>(Arrays.asList(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
+        this.possibleLocations = computePossibleLocations();
         this.currentRound = state.getMrXTravelLog().size();
         this.isRevealTurn = isRevealTurn();
     }
@@ -37,6 +38,30 @@ public class Situation{
         this.possibleLocations = possibleLocations;
         this.currentRound = currentRound + (doAdvance ? 1 : 0);
         this.isRevealTurn = isRevealTurn();
+    }
+
+    private LinkedHashSet<Integer> computePossibleLocations() {
+        ImmutableList<Boolean> rounds = state.getSetup().rounds;
+        int lastReveal = rounds.subList(0, currentRound).lastIndexOf(true);
+        LinkedHashSet<Integer> output;
+
+        // If no reveal turn has occurred yet
+        if (lastReveal == -1) {
+            output = new LinkedHashSet<>(Arrays.asList(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
+            lastReveal = 0;
+        } else {
+            output = new LinkedHashSet<>((state.getMrXTravelLog().get(lastReveal).location().orElse(0)));
+        }
+
+        ArrayList<Integer> someLocations = new ArrayList<>();
+
+        for (LogEntry l : state.getMrXTravelLog().subList(lastReveal, state.getMrXTravelLog().size())) {
+            for (Integer location : output)
+                someLocations.addAll(getSingleMovesWithTicket(location, l.ticket()));
+            output.addAll(someLocations);
+        }
+
+        return output;
     }
 
     public ArrayList<Integer> possibleLocations() {
