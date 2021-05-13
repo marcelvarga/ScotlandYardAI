@@ -42,11 +42,8 @@ public class Situation{
 
     private LinkedHashSet<Integer> computePossibleLocations() {
         ImmutableList<Boolean> round = state.getSetup().rounds;
-
-        System.out.println("CURRENT ROUND " + currentRound);
         int lastReveal = round.subList(0, currentRound).lastIndexOf(true);
         LinkedHashSet<Integer> output;
-        System.out.println("LAST REVEAL      " + lastReveal);
         // If no reveal turn has occurred yet
         if (lastReveal == -1) {
             output = new LinkedHashSet<>(Arrays.asList(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
