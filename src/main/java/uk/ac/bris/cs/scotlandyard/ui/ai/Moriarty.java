@@ -21,7 +21,6 @@ public class Moriarty implements Ai {
 		//bestNode is now the node with the most optimistic outcome
 		if(!moves.get(0).commencedBy().isMrX()) throw new IllegalArgumentException("It's not mrX's turn!");
 		final int maxDepth = 3;
-		System.out.println("--------------------------------------- New call --------------------------------------------------------------------");
 		return new Minimax().getBestMove(new Situation((Board.GameState) board), maxDepth, moves.get(0).source(), timeoutPair.left(), true);
 		//return new Minimax((Board.GameState) board, 2, moves.get(0).source(), timeoutPair.left()).getBestMove();
 	}
