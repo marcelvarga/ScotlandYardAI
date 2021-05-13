@@ -1,5 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import uk.ac.bris.cs.scotlandyard.model.*;
@@ -37,6 +38,19 @@ public class Situation{
         this.possibleLocations = possibleLocations;
         this.currentRound = currentRound + (doAdvance ? 1 : 0);
         this.isRevealTurn = isRevealTurn();
+    }
+
+    public ArrayList<Integer> computePossibleLocations() {
+        ImmutableList<Boolean> rounds = state.getSetup().rounds;
+        int lastReveal = rounds.subList(0, currentRound).lastIndexOf(true);
+
+        ArrayList<Integer> output = new ArrayList<>((state.getMrXTravelLog().get(lastReveal).location().orElse(0)));
+
+        for (LogEntry l : state.getMrXTravelLog().subList(lastReveal, -1)) {
+            output = getSingleMovesWithTicket(l.ticket());
+        }
+
+        return output;
     }
 
     public ArrayList<Integer> possibleLocations() {
