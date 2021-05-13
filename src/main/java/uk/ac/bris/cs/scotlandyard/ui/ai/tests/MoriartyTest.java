@@ -9,15 +9,16 @@ import org.junit.runners.Parameterized;
 import uk.ac.bris.cs.scotlandyard.model.*;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.ui.ai.Moriarty;
+import uk.ac.bris.cs.scotlandyard.ui.ai.Situation;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
-import static uk.ac.bris.cs.scotlandyard.model.Piece.Detective.BLUE;
-import static uk.ac.bris.cs.scotlandyard.model.Piece.Detective.GREEN;
+import static uk.ac.bris.cs.scotlandyard.model.Piece.Detective.*;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
+import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.*;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultDetectiveTickets;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultMrXTickets;
 
@@ -66,17 +67,37 @@ public class MoriartyTest extends TestBase{
                 ScotlandYard.Ticket.SECRET));
     }
 
-    /*@Test public void testMrXDoesNotReducePossibleLocationsToOne() {
+    @Test public void testMrXDoesNotReducePossibleLocationsToOneUnlessRevealTurn() {
         GameState state = gameStateFactory.build(
-                new GameSetup(standardGraph(), new ImmutableList<Boolean>(List.of(true, false, false, true)),
+                new GameSetup(standardGraph(), rounds(false, false, false)),
                 new Player(MRX, defaultMrXTickets(), 166),
                 new Player(BLUE, defaultDetectiveTickets(), 12));
 
         Ai Moriarty = new Moriarty();
 
-        assert(!Iterables.contains(
-                Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).tickets(),
-                ScotlandYard.Ticket.SECRET));
-    }*/
+        Situation situation = new Situation(state);
 
+        Move bestMove = Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS));
+
+        int numLocations = situation.advance(bestMove).numPossibleLocations();
+
+        assert(numLocations != 1);
+    }
+
+    @Test public void testMrXDoesNotGetStuckIfPossible() {
+        GameState state = gameStateFactory.build(
+                standard24RoundSetup(),
+                new Player(MRX, makeTickets(1, 2, 0, 0, 0), 170),
+                new Player(BLUE, defaultDetectiveTickets(), 185),
+                new Player(GREEN, defaultDetectiveTickets(), 156),
+                new Player(RED, defaultDetectiveTickets(), 159));
+
+        Ai Moriarty = new Moriarty();
+
+        Move bestMove = Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS));
+
+        // Moving to 159 will get MrX stuck. Detectives are placed so as to make 157 look as unappealing as possible
+
+        assert(bestMove.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)) != 159);
+    }
 }

@@ -141,6 +141,14 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.readGraph;
                 Ticket.SECRET, secret);
     }
 
+    /**
+     * @param rounds the reveal/hidden rounds as a boolean
+     * @return a list of rounds
+     */
+    @Nonnull static ImmutableList<Boolean> rounds(Boolean... rounds) {
+        return ImmutableList.copyOf(rounds);
+    }
+
    /**
      * Creates a new {@link DoubleMove}
      *

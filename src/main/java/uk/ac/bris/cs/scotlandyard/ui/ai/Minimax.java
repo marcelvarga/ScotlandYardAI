@@ -199,6 +199,10 @@ public class Minimax {
         }
         checkNotEmpty(temp0, temp1);
 
+        // Remove moves that would get MrX trapped
+        temp0.removeIf(m -> situation.advance(m).numPossibleLocations() == 0);
+        checkNotEmpty(temp0, temp1);
+
 
         // Remove moves that effectively waste secret tickets
         if(situation.isRevealTurnNext()) {
@@ -219,6 +223,7 @@ public class Minimax {
         checkNotEmpty(temp0, temp1);
 
         // Remove moves that reduce MrX's possible locations to 1 UNLESS he's going into a reveal turn
+        // Also if the move gets him stuck
         // Even though this seems bad, using doubles on the first two reveal turns might be his comeuppance later on
         // This is quite processing heavy, so only run if MrX is in a pickle (only 5 possibleLocations)
         if (situation.numPossibleLocations() < 6) {
