@@ -43,16 +43,26 @@ public class MoriartyTest extends TestBase{
 
     @Test public void testMrXIgnoresDoublesWhenFarAway() {
 
+        /*GameState state = gameStateFactory.build(standard24RoundSetup(),
+                new Player(MRX, defaultMrXTickets(), 166),
+                new Player(BLUE, defaultDetectiveTickets(), 7),
+                new Player(GREEN, defaultDetectiveTickets(), 30));*/
         GameState state = gameStateFactory.build(standard24RoundSetup(),
                 new Player(MRX, defaultMrXTickets(), 166),
                 new Player(BLUE, defaultDetectiveTickets(), 7),
                 new Player(GREEN, defaultDetectiveTickets(), 30));
+        /* working one
+       GameState state = gameStateFactory.build(standard24RoundSetup(),
+                new Player(MRX, makeTickets(5, 0, 0, 0, 0), 166),
+                new Player(BLUE, defaultDetectiveTickets(), 151),
+                new Player(GREEN, defaultDetectiveTickets(), 180));*/
 
         Ai Moriarty = new Moriarty();
-
+        Move move = Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS));
+        System.out.println("wassup baby");
         assert(!Iterables.contains(
-            Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).tickets(),
-            ScotlandYard.Ticket.DOUBLE));
+                Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).tickets(),
+                ScotlandYard.Ticket.SECRET));
     }
 
     @Test public void testMrXSavesSecretsOnRevealTurns() {
