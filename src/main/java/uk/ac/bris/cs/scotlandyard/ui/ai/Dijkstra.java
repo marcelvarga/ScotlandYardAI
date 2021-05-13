@@ -38,7 +38,7 @@ public class Dijkstra {
 
     // Run Dijkstra with multiple sources ("from") towards one destination ("destination")
     // earlyBreak tells Dijkstra if it should return as soon as the distance to the destination is computed
-    Dijkstra(ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph, ArrayList<Integer> from, Integer destination, boolean earlyBreak){
+    public Dijkstra(ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph, ArrayList<Integer> from, Integer destination, boolean earlyBreak){
         distTo = new ArrayList<>(Collections.nCopies(200, 1000));
         this.towards = destination;
 
