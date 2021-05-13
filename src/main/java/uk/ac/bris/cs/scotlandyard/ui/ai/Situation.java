@@ -53,7 +53,7 @@ public class Situation{
             output = new LinkedHashSet<>((state.getMrXTravelLog().get(lastReveal).location().orElse(0)));
         }
 
-        ArrayList<Integer> someLocations = new ArrayList<>();
+        LinkedHashSet<Integer> someLocations = new LinkedHashSet<>();
 
         for (LogEntry l : state.getMrXTravelLog().subList(lastReveal, state.getMrXTravelLog().size())) {
             for (Integer location : output)
