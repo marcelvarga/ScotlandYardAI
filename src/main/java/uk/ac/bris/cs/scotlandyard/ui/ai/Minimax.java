@@ -150,6 +150,7 @@ public class Minimax {
         System.out.println("Number of verified moves: " + verifiedMoves);
         System.out.println("Looking " + maxDepth + " steps ahead");
         System.out.printf("Time elapsed: %.3f seconds%n", ((System.currentTimeMillis() - startTime) / (float) 1000));
+        System.out.println("Possible locations: " + situation.possibleLocations.size());
         /*System.out.println("MrX could be at:");
         for (Integer location : situation.possibleLocations()) {
             System.out.println(" - " + location);
