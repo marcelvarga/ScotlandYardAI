@@ -27,24 +27,26 @@ public class Situation{
     // Used when initialising the Situation for the first time
     public Situation(Board.GameState state) {
         this.state = state;
-        this.possibleLocations = computePossibleLocations();
         this.currentRound = state.getMrXTravelLog().size();
+        this.possibleLocations = computePossibleLocations();
         this.isRevealTurn = isRevealTurn();
     }
 
     // Used when advancing a situation
-    public Situation(Board.GameState state, LinkedHashSet<Integer> possibleLocations, Integer currentRound, Boolean doAdvance) {
+    public Situation(Board.GameState state, LinkedHashSet<Integer> possibleLocations) {
         this.state = state;
+        this.currentRound = state.getMrXTravelLog().size();
         this.possibleLocations = possibleLocations;
-        this.currentRound = currentRound + (doAdvance ? 1 : 0);
         this.isRevealTurn = isRevealTurn();
     }
 
     private LinkedHashSet<Integer> computePossibleLocations() {
-        ImmutableList<Boolean> rounds = state.getSetup().rounds;
-        int lastReveal = rounds.subList(0, currentRound).lastIndexOf(true);
-        LinkedHashSet<Integer> output;
+        ImmutableList<Boolean> round = state.getSetup().rounds;
 
+        System.out.println("CURRENT ROUND " + currentRound);
+        int lastReveal = round.subList(0, currentRound).lastIndexOf(true);
+        LinkedHashSet<Integer> output;
+        System.out.println("LAST REVEAL      " + lastReveal);
         // If no reveal turn has occurred yet
         if (lastReveal == -1) {
             output = new LinkedHashSet<>(Arrays.asList(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
@@ -154,15 +156,11 @@ public class Situation{
         if (move.visit(new Move.FunctionalVisitor<>(m -> false, m -> true))) {
             Iterable<ScotlandYard.Ticket> tickets = move.tickets();
             this.possibleLocations = updatePossibleLocations(Iterables.get(tickets, 0));
-            return new Situation(state.advance(move), updatePossibleLocations(Iterables.get(tickets, 1)), currentRound + 1, true);
+            return new Situation(state.advance(move), updatePossibleLocations(Iterables.get(tickets, 1)));
         }
 
         // Only advance currentRound if MRX is making a move
-        if (move.commencedBy() == MRX) {
-            return new Situation(state.advance(move), updatePossibleLocations(move), currentRound, true);
-        } else {
-            return new Situation(state.advance(move), updatePossibleLocations(move), currentRound, false);
-        }
+        return new Situation(state.advance(move), updatePossibleLocations(move));
     }
     public ImmutableSet<Piece> getWinner(){ return state.getWinner(); }
     public ImmutableSet<Move> getAvailableMoves() { return state.getAvailableMoves(); }
