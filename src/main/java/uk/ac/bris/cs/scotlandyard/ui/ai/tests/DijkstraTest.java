@@ -3,14 +3,11 @@ package uk.ac.bris.cs.scotlandyard.ui.ai.tests;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.Test;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.model.GameSetup;
-import uk.ac.bris.cs.scotlandyard.model.MyGameStateFactory;
 import uk.ac.bris.cs.scotlandyard.model.Player;
 import uk.ac.bris.cs.scotlandyard.ui.ai.Dijkstra;
-import uk.ac.bris.cs.scotlandyard.ui.ai.tests.TestBase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +15,6 @@ import java.util.List;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.Detective.BLUE;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.Detective.RED;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
-import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.*;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultDetectiveTickets;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultMrXTickets;
 
