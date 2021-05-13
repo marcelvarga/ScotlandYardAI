@@ -44,7 +44,7 @@ public class MoriartyTest extends TestBase{
     @Test public void testMrXIgnoresDoublesWhenFarAway() {
 
         GameState state = gameStateFactory.build(standard24RoundSetup(),
-                new Player(MRX, defaultMrXTickets(), 166),
+                new Player(MRX, makeTickets(5, 5, 5, 2, 2), 166),
                 new Player(BLUE, defaultDetectiveTickets(), 7),
                 new Player(GREEN, defaultDetectiveTickets(), 30));
 
