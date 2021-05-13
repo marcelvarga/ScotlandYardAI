@@ -40,7 +40,7 @@ public class Situation{
         this.isRevealTurn = isRevealTurn();
     }
 
-    public LinkedHashSet<Integer> computePossibleLocations() {
+    private LinkedHashSet<Integer> computePossibleLocations() {
         ImmutableList<Boolean> rounds = state.getSetup().rounds;
         int lastReveal = rounds.subList(0, currentRound).lastIndexOf(true);
         LinkedHashSet<Integer> output;
