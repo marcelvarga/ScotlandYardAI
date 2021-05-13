@@ -7,7 +7,8 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         MoriartyTest.class,
-        DijkstraTest.class
+        DijkstraTest.class,
+        SituationTest.class
 })
 
 public class AllTest {}

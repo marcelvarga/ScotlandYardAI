@@ -183,16 +183,19 @@ public class Minimax {
         // Decides how to filter moves based on how far away MrX is at the moment
         // If MrX is more than 4 distance away, filter to optimise possibleLocations
         // Otherwise, filter to optimise distance
-
+        /*if (d.getDistToDestination() > 4) {
+            temp0.sort(Comparator.comparingInt(move -> -situation.advance(move).numPossibleLocations()));
+            temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
+            temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 10));*/
         if (d.getDistToDestination() > 4) {
-                //System.out.println("Far enuff");
+                System.out.println("Far enuff");
                 temp0.removeIf(m -> (!m.visit(isDoubleMoveVisitor)));
                 checkNotEmpty(temp0, temp1);
                 Situation s = situation.advance(temp0.get(0));
 
-                /*for (Move m : temp0) {
+                for (Move m : temp0) {
                     System.out.println(-situation.advance(m).numPossibleLocations());
-                }*/
+                }
                 temp0.sort(Comparator.comparingInt(move -> -situation.advance(move).numPossibleLocations()));
                 temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 10));
         } else {

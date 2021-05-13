@@ -3,8 +3,10 @@ package uk.ac.bris.cs.scotlandyard.ui.ai;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import uk.ac.bris.cs.scotlandyard.model.*;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
@@ -49,7 +51,7 @@ public class Situation{
             output = new LinkedHashSet<>(Arrays.asList(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
             lastReveal = 0;
         } else {
-            output = new LinkedHashSet<>((state.getMrXTravelLog().get(lastReveal).location().orElse(0)));
+            output = new LinkedHashSet<>((state.getMrXTravelLog().get(lastReveal-1).location().orElse(0)));
         }
 
         LinkedHashSet<Integer> someLocations = new LinkedHashSet<>();
@@ -75,6 +77,7 @@ public class Situation{
     // Input can be either a ticket or a move, depending on which AI is using it
     private LinkedHashSet<Integer> updatePossibleLocations(Object obj) {
         if (obj instanceof Move) {
+            System.out.println("updatePossibleLocations returns: " + getPossibleLocationsWithMove((Move) obj));
             return getPossibleLocationsWithMove((Move) obj);
         } else  {
             return getPossibleLocationsWithTicket((ScotlandYard.Ticket) obj);
@@ -88,7 +91,9 @@ public class Situation{
 
             if (isRevealTurn) {
                 //noinspection RedundantCast
-                return new LinkedHashSet<>(move.visit((Move.Visitor<Integer>) new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
+                return new LinkedHashSet<>(List.of(
+                        move.visit((Move.Visitor<Integer>) new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2))
+                ));
             }
 
             return getPossibleLocationsWithTicket(Iterables.get(move.tickets(), 0));
@@ -149,14 +154,19 @@ public class Situation{
 
     // Wrapping GameState part //
     public Situation advance(Move move) {
+        System.out.println(move);
         // If the move is a doubleMove, update in parts
         if (move.visit(new Move.FunctionalVisitor<>(m -> false, m -> true))) {
             Iterable<ScotlandYard.Ticket> tickets = move.tickets();
-            this.possibleLocations = updatePossibleLocations(Iterables.get(tickets, 0));
-            return new Situation(state.advance(move), updatePossibleLocations(Iterables.get(tickets, 1)));
+            ScotlandYard.Ticket t1 = Iterables.get(tickets, 0);
+            ScotlandYard.Ticket t2 = Iterables.get(tickets, 1);
+            this.possibleLocations = updatePossibleLocations(t1);
+            System.out.println("PossibleLocations now: " + this.possibleLocations);
+            this.possibleLocations = updatePossibleLocations(t2);
+            System.out.println("PossibleLocations now: " + this.possibleLocations);
+            return new Situation(state.advance(move), this.possibleLocations);
         }
 
-        // Only advance currentRound if MRX is making a move
         return new Situation(state.advance(move), updatePossibleLocations(move));
     }
     public ImmutableSet<Piece> getWinner(){ return state.getWinner(); }
