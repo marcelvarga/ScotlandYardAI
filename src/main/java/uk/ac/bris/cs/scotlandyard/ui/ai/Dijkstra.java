@@ -2,8 +2,6 @@ package uk.ac.bris.cs.scotlandyard.ui.ai;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.graph.ImmutableValueGraph;
-import uk.ac.bris.cs.scotlandyard.model.Board;
-import uk.ac.bris.cs.scotlandyard.model.Piece;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Transport;
 
 import java.util.*;
@@ -38,7 +36,7 @@ public class Dijkstra {
     private final ArrayList<Integer> distTo;
     private final int towards;
 
-    // Run Dijkstra with multiple sources ("from") towards one destination "destination"
+    // Run Dijkstra with multiple sources ("from") towards one destination ("destination")
     // earlyBreak tells Dijkstra if it should return as soon as the distance to the destination is computed
     Dijkstra(ImmutableValueGraph<Integer, ImmutableSet<Transport>> graph, ArrayList<Integer> from, Integer destination, boolean earlyBreak){
         distTo = new ArrayList<>(Collections.nCopies(200, 1000));
