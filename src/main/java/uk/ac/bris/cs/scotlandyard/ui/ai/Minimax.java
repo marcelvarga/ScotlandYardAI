@@ -147,11 +147,7 @@ public class Minimax {
         System.out.println("Number of verified moves: " + verifiedMoves);
         System.out.println("Looking " + maxDepth + " steps ahead");
         System.out.printf("Time elapsed: %.3f seconds%n", ((System.currentTimeMillis() - startTime) / (float) 1000));
-        System.out.println("Possible locations: " + situation.possibleLocations.size());
-        /*System.out.println("MrX could be at:");
-        for (Integer location : situation.possibleLocations()) {
-            System.out.println(" - " + location);
-        }*/
+        System.out.println("Possible locations: " + situation.numPossibleLocations());
         return bestMove;
     }
 
@@ -185,10 +181,10 @@ public class Minimax {
             temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
             temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 10));*/
         if (d.getDistToDestination() > 4) {
-                temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
-                checkNotEmpty(temp0, temp1);
-                temp0.sort(Comparator.comparingInt(move -> -situation.advance(move).numPossibleLocations()));
-                temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 10));
+            temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
+            checkNotEmpty(temp0, temp1);
+            temp0.sort(Comparator.comparingInt(move -> -situation.advance(move).numPossibleLocations()));
+            temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 10));
         } else {
             temp0.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
             // Remove double moves if no detective is closer than 2 moves away from MrX
