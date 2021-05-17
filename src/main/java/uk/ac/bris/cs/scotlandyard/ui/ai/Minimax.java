@@ -119,7 +119,7 @@ public class Minimax {
 
         double[] multipliers =
                 //TAXI, BUS, UNDERGROUND, SECRET, DOUBLE
-                {  1  ,  2 ,      4     ,  15   ,   20  };
+                {  1  ,  2 ,      4     ,  20   ,   20  };
 
         int score = 0;
 
@@ -175,7 +175,6 @@ public class Minimax {
         Dijkstra d = new Dijkstra(situation.getState().getSetup().graph, getDetectiveLocations(situation), mrXLocation, false);
 
         int remainingRounds = situation.getState().getSetup().rounds.size() - situation.getState().getMrXTravelLog().size();
-        System.out.println("! ! Remaining rounds! ! " + remainingRounds);
 
         // Decides how to filter moves based on how far away MrX is at the moment
         // If MrX is more than 4 distance away, filter to optimise possibleLocations
