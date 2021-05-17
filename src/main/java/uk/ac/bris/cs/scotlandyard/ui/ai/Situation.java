@@ -7,7 +7,6 @@ import uk.ac.bris.cs.scotlandyard.model.*;
 
 import java.util.*;
 
-import static java.lang.System.exit;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.SECRET;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.TAXI;
@@ -20,13 +19,13 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.TAXI;
 // Used by Sherlock to aid in capture
 
 public class Situation{
-    Board.GameState state;
+    private final Board.GameState state;
 
     // Used to prevent duplicates
-    LinkedHashSet<Integer> possibleLocations;
+    private LinkedHashSet<Integer> possibleLocations;
 
-    int currentRound;
-    boolean isRevealTurn;
+    private final int currentRound;
+    private final boolean isRevealTurn;
 
     // Used when initialising the Situation for the first time
     public Situation(Board.GameState state) {
@@ -64,8 +63,6 @@ public class Situation{
                 someLocations.addAll(getSingleMovesWithTicket(location, l.ticket()));
             output.addAll(someLocations);
         }
-
-        if (output.size() == 0) exit(0);
 
         return output;
     }
@@ -145,13 +142,15 @@ public class Situation{
         return new ArrayList<>(possibleLocations);
     }
 
-    // Helper functions //
-    public Boolean getIsRevealTurn() { return isRevealTurn; }
     private boolean isRevealTurn() {
         if(currentRound == state.getSetup().rounds.size()) return false;
         return state.getSetup().rounds.get(currentRound);
     }
     public boolean isRevealTurnNext(){
+        if(currentRound == state.getSetup().rounds.size()) return false;
+        return state.getSetup().rounds.get(currentRound);
+    }
+    public boolean isRevealTurnNextNext(){
         if(currentRound == state.getSetup().rounds.size() - 1) return false;
         return state.getSetup().rounds.get(currentRound+1);
     }
