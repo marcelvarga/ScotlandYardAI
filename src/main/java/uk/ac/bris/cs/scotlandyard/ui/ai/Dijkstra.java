@@ -10,6 +10,7 @@ import java.util.*;
 
 public class Dijkstra {
 
+    // Helper class that stores distance from source and location in the graph
     private class Node implements Comparable<Node> {
         private final int location;
         private final int distance;
@@ -23,11 +24,9 @@ public class Dijkstra {
         public int compareTo(Node o) {
             return this.distance - o.distance;
         }
-
         public int getDistance() {
             return distance;
         }
-
         public int getLocation() {
             return location;
         }
@@ -53,6 +52,8 @@ public class Dijkstra {
             Node current = pQueue.poll();
             int loc = current.getLocation();
             int dist = current.getDistance();
+
+            // Stop computing other distances if the parameter requires so
             if (loc == destination && earlyBreak) return;
 
             if(distTo.get(loc) == dist)
