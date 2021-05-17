@@ -6,8 +6,7 @@ import org.junit.Test;
 
 import uk.ac.bris.cs.scotlandyard.model.*;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
-import uk.ac.bris.cs.scotlandyard.ui.ai.Moriarty;
-import uk.ac.bris.cs.scotlandyard.ui.ai.Moriarty;
+import uk.ac.bris.cs.scotlandyard.ui.ai.Mycroft;
 import uk.ac.bris.cs.scotlandyard.ui.ai.Situation;
 
 import java.util.concurrent.TimeUnit;
@@ -19,21 +18,21 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.defaultMrXTickets;
 
 @SuppressWarnings("UnstableApiUsage")
 
-public class MoriartyTest extends TestBase{
+public class MycroftTest extends TestBase{
 
     Move.FunctionalVisitor<Integer> getDestination = new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2);
 
     @Test public void testMrXAvoidsCatchableLocationsIfPossible() {
 
         GameState state = gameStateFactory.build(standard24RoundSetup(),
-            new Player(MRX, makeTickets(5, 0, 0, 0, 0), 166),
-            new Player(BLUE, defaultDetectiveTickets(), 152),
-            new Player(GREEN, defaultDetectiveTickets(), 180));
+                new Player(MRX, makeTickets(5, 0, 0, 0, 0), 166),
+                new Player(BLUE, defaultDetectiveTickets(), 152),
+                new Player(GREEN, defaultDetectiveTickets(), 180));
 
-        Ai Moriarty = new Moriarty();
+        Ai Mycroft = new Mycroft();
 
         assert(Integer.valueOf(183).equals(
-                Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).visit(getDestination)));
+                Mycroft.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).visit(getDestination)));
     }
 
     @Test public void testMrXIgnoresDoublesWhenFarAway() {
@@ -43,9 +42,9 @@ public class MoriartyTest extends TestBase{
                 new Player(BLUE, defaultDetectiveTickets(), 7),
                 new Player(GREEN, defaultDetectiveTickets(), 30));
 
-        Ai Moriarty = new Moriarty();
+        Ai mycroft = new Mycroft();
 
-        assert(Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).
+        assert(mycroft.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).
                 visit(new Move.FunctionalVisitor<>(m -> true, m-> false)));
     }
 
@@ -56,10 +55,12 @@ public class MoriartyTest extends TestBase{
                 new Player(MRX, makeTickets(0, 1, 0, 2, 2), 165),
                 new Player(BLUE, defaultDetectiveTickets(), 12));
 
-        Ai moriarty = new Moriarty();
-        assert(moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).
+        Ai Mycroft = new Mycroft();
+        Move move = Mycroft.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS));
+        System.out.println(move.toString());
+        assert(Mycroft.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS)).
                 tickets().iterator().next() !=
-                ScotlandYard.Ticket.SECRET);
+                    ScotlandYard.Ticket.SECRET);
     }
 
     @Test public void testMrXDoesNotReducePossibleLocationsToOneUnlessRevealTurn() {
@@ -68,11 +69,11 @@ public class MoriartyTest extends TestBase{
                 new Player(MRX, defaultMrXTickets(), 166),
                 new Player(BLUE, defaultDetectiveTickets(), 12));
 
-        Ai Moriarty = new Moriarty();
+        Ai Mycroft = new Mycroft();
 
         Situation situation = new Situation(state);
 
-        Move bestMove = Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS));
+        Move bestMove = Mycroft.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS));
 
         int numLocations = situation.advance(bestMove).numPossibleLocations();
 
@@ -87,9 +88,9 @@ public class MoriartyTest extends TestBase{
                 new Player(GREEN, defaultDetectiveTickets(), 156),
                 new Player(RED, defaultDetectiveTickets(), 159));
 
-        Ai Moriarty = new Moriarty();
+        Ai Mycroft = new Mycroft();
 
-        Move bestMove = Moriarty.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS));
+        Move bestMove = Mycroft.pickMove(state, new Pair<>(25L, TimeUnit.SECONDS));
 
         // Moving to 159 will get MrX stuck. Detectives are placed so as to make 157 look as unappealing as possible
 

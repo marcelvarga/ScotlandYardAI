@@ -7,6 +7,7 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         MoriartyTest.class,
+        MycroftTest.class,
         DijkstraTest.class,
         SituationTest.class
 })

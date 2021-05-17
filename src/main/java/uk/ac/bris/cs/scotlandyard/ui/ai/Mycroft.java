@@ -11,7 +11,7 @@ import uk.ac.bris.cs.scotlandyard.model.*;
 import uk.ac.bris.cs.scotlandyard.model.Board;
 
 import static java.lang.Math.max;
-
+@SuppressWarnings("unused")
 public class Mycroft implements Ai {
 
     @Nonnull
@@ -32,6 +32,7 @@ public class Mycroft implements Ai {
         return getBestMove(new Situation((Board.GameState) board), 3, moves.get(0).source(), timeoutPair.left());
     }
 
+    @SuppressWarnings("SameParameterValue")
     @Nonnull
     private Move getBestMove(Situation situation, int maxDepth, int mrXLocation, long maxTime) {
 
