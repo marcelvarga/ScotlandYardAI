@@ -20,8 +20,7 @@ public class Sherlock implements Ai {
     @Override
     public Move pickMove(@Nonnull Board board, Pair<Long, TimeUnit> timeoutPair) {
         var moves = board.getAvailableMoves().asList();
+        // Picks a random move
         return moves.get(new Random().nextInt(moves.size()));
-        //return new Minimax().getBestMove(new Situation((Board.GameState) board), 3, 1, timeoutPair.left(), false);
-
     }
 }
