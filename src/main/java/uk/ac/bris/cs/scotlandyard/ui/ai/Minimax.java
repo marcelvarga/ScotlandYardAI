@@ -41,7 +41,7 @@ public class Minimax {
         // If the time elapsed (ms) is larger than the time-limit (minus a buffer), start exiting
         if (depth == 0 ||
                 !situation.getWinner().isEmpty() ||
-                (System.currentTimeMillis() - startTime > (maxTime - 3) * 1000))
+                (System.currentTimeMillis() - startTime > (maxTime - 5) * 1000))
                 return score(situation, mrXLocation);
 
         if (isMrX) {
