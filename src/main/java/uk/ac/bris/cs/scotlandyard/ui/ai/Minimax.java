@@ -1,15 +1,11 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
-import com.google.common.collect.Iterables;
 import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Optional;
+import java.util.*;
 
 import static uk.ac.bris.cs.scotlandyard.model.Move.FunctionalVisitor;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
@@ -18,16 +14,14 @@ import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 
 public class Minimax {
 
-    int steps;
-    final int minusInfinity = -10000000;
-    final int plusInfinity = +10000000;
-    Move bestMove;
-    int verifiedMoves = 0;
-    long maxTime;
-    long startTime;
-    DijkstraCache dijkstraCache;
+    private int steps;
+    private final int minusInfinity = -10000000;
+    private final int plusInfinity = +10000000;
+    private Move bestMove;
+    private final long maxTime;
+    private final long startTime;
+    private final DijkstraCache dijkstraCache;
     boolean mrXIsCaller;
-    private int maxDepth;
 
     Minimax(long maxTime) {
         this.dijkstraCache = new DijkstraCache();
@@ -39,34 +33,23 @@ public class Minimax {
         this.steps = steps;
         this.mrXIsCaller = mrXIsCaller;
         searchBestScore(situation, steps, minusInfinity, plusInfinity, mrXIsCaller, mrXLocation);
-        System.out.println("--------------------------------------- New call --------------------------------------------------------------------");
-        System.out.println("MrX's location is: " + getDest(bestMove));
-        System.out.println("Minimum distance to MrX is: " + dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), getDest(bestMove)));
-        System.out.println("Number of verified moves: " + verifiedMoves);
-        System.out.println("Looking " + maxDepth + " steps ahead");
-        System.out.printf("Time elapsed: %.3f seconds%n", ((System.currentTimeMillis() - startTime) / (float) 1000));
-        System.out.println("Possible locations: " + situation.numPossibleLocations());
         return bestMove;
     }
 
     public int searchBestScore(Situation situation, int depth, int alpha, int beta, boolean isMrX, int mrXLocation) {
         // Stop searching if the depth is zero, there's a winner or the time's nearly up
-        if (depth == 0) return score(situation, mrXLocation);
-        if (!situation.getWinner().isEmpty()) return score(situation, mrXLocation);
-
         // If the time elapsed (ms) is larger than the time-limit (minus a buffer), start exiting
-        if ((System.currentTimeMillis() - startTime > (maxTime - 5) * 1000)){
-            return score(situation, mrXLocation);}
+        if (depth == 0 ||
+                !situation.getWinner().isEmpty() ||
+                (System.currentTimeMillis() - startTime > (maxTime - 3) * 1000))
+                return score(situation, mrXLocation);
 
-
-        maxDepth = Math.max(maxDepth, steps - depth + 1);
         if (isMrX) {
             int maxEval = minusInfinity;
             ArrayList<Move> movesToCheck = filterMrXMoves(situation, mrXLocation);
 
             for (Move currMove : movesToCheck)
                 if (currMove.visit(new FunctionalVisitor<>(m -> true, m -> true))) {
-                    verifiedMoves++;
                     int eval = searchBestScore(
                             situation.advance(currMove),
                             depth - 1,
@@ -92,7 +75,6 @@ public class Minimax {
 
             ArrayList<Move> movesToCheck = filterDetectiveMoves(situation, mrXLocation);
             for (Move currMove : movesToCheck) {
-                verifiedMoves++;
                 int eval = searchBestScore(
                         situation.advance(currMove),
                         depth,
@@ -157,11 +139,10 @@ public class Minimax {
         return score;
     }
 
-
+    // Helper functions //
     private int getDest(Move move) {
         return move.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2));
     }
-
     // Checks the available moves of the state to see if there are other players left to make a move in the current round
     private boolean checkIfLastDetective(Situation situation) {
         ArrayList<Move> moves = new ArrayList<>(situation.getAvailableMoves().asList());
@@ -172,28 +153,62 @@ public class Minimax {
         }
         return true;
     }
+    private ArrayList<Integer> getDetectiveLocations(Situation situation) {
+        ArrayList<Integer> detectiveLocations = new ArrayList<>();
+        ArrayList<Piece> pieces = new ArrayList<>(situation.getPlayers());
+        for (Piece piece : pieces)
+            if (piece.isDetective()) {
+                Optional<Integer> location = situation.getDetectiveLocation((Piece.Detective) piece);
+                location.ifPresent(detectiveLocations::add);
+            }
+        return detectiveLocations;
+    }
 
+    // Moves filtering //
     public ArrayList<Move> filterMrXMoves(Situation situation, int mrXLocation) {
+        // temp0 is used to store the moves and to filter, temp1 is used to cache temp0 in case it is empty after a filter
         ArrayList<Move> temp0 = new ArrayList<>(situation.getAvailableMoves().asList());
         ArrayList<Move> temp1 = new ArrayList<>(temp0);
 
         Dijkstra d = new Dijkstra(situation.getState().getSetup().graph, getDetectiveLocations(situation), mrXLocation, false);
         FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
+        int remainingRounds = situation.getState().getSetup().rounds.size() - situation.getState().getMrXTravelLog().size();
+        System.out.println("! ! Remaining rounds! ! " + remainingRounds);
 
         // Decides how to filter moves based on how far away MrX is at the moment
         // If MrX is more than 4 distance away, filter to optimise possibleLocations
         // Otherwise, filter to optimise distance
-        /*if (d.getDistToDestination() > 4) {
-            temp0.sort(Comparator.comparingInt(move -> -situation.advance(move).numPossibleLocations()));
-            temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
-            temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 10));*/
-        if (d.getDistToDestination() > 4) {
-            temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
-            checkNotEmpty(temp0, temp1);
-            temp0.sort(Comparator.comparingInt(move -> -situation.advance(move).numPossibleLocations()));
+
+        if (d.getDistToDestination() > 3) {
+            // Remove DoubleMoves if there are many rounds left
+            //noinspection ConstantConditions
+            int doubleMovesCount = situation.getState().getPlayerTickets(MRX).orElse(null).getCount(ScotlandYard.Ticket.DOUBLE);
+            if(remainingRounds > ( doubleMovesCount / 2)) {
+                temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
+                checkNotEmpty(temp0, temp1);
+                }
+            // Order by possible locations then by distance from detectives
+            temp0.sort(Comparator.comparingInt(move -> -situation.advance((Move) move).numPossibleLocations())
+                    .thenComparingInt(move -> -d.getDistances().get(getDest((Move) move))));
             temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 10));
         } else {
-            temp0.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
+            // Order by distance from detectives then by possible locations
+
+            Comparator<Move> distanceThenLocations = (m1, m2) -> {
+
+                Integer distanceDifference = d.getDistances().get(getDest(m1)) - d.getDistances().get(getDest(m2));
+                if (distanceDifference < 0) return -1;
+                if (distanceDifference > 0) return 1;
+
+                int possibleLocationsDifference = situation.advance(m1).numPossibleLocations() - situation.advance(m2).numPossibleLocations();
+                //noinspection UseCompareMethod
+                if (possibleLocationsDifference < 0) return -1;
+                if (possibleLocationsDifference > 0) return 1;
+                return 0;
+            };
+
+            temp0.sort(distanceThenLocations);
+
             // Remove double moves if no detective is closer than 2 moves away from MrX
             // or that would get MrX immediately caught
             temp0.removeIf(m -> ((d.getDistances().get(getDest(m)) > 2) && (m.visit(isDoubleMoveVisitor))));
@@ -202,18 +217,18 @@ public class Minimax {
         }
         checkNotEmpty(temp0, temp1);
 
-        // Remove moves that would get MrX trapped
-        temp0.removeIf(m -> situation.advance(m).numPossibleLocations() == 0);
-        checkNotEmpty(temp0, temp1);
-
 
         // Remove moves that effectively waste secret tickets
         if(situation.isRevealTurnNext()) {
-            temp0.removeIf(m -> Iterables.contains(m.tickets(), ScotlandYard.Ticket.SECRET));
-
+            temp0.removeIf(m -> m.tickets().iterator().next() == ScotlandYard.Ticket.SECRET);
             checkNotEmpty(temp0, temp1);
         }
+        if(situation.isRevealTurnNextNext()) {
+            FunctionalVisitor<Boolean> isSecondTicketSecret = new FunctionalVisitor<>(m -> false, m -> m.ticket2 == ScotlandYard.Ticket.SECRET);
+            temp0.removeIf(m -> m.visit(isDoubleMoveVisitor) && m.visit(isSecondTicketSecret));
+            checkNotEmpty(temp0, temp1);
 
+        }
         // Remove duplicate double moves that use the same tickets IN ORDER and end at the same location
         int len = temp0.size();
         for (int i = 0; i < len - 1; i++)
@@ -229,19 +244,23 @@ public class Minimax {
         // Also if the move gets him stuck
         // Even though this seems bad, using doubles on the first two reveal turns might be his comeuppance later on
         // This is quite processing heavy, so only run if MrX is in a pickle (only 5 possibleLocations)
-        if (situation.numPossibleLocations() < 6) {
-            temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() == 1) && !situation.advance(m).getIsRevealTurn());
+        if (situation.numPossibleLocations() < 10) {
+            temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() == 1) && !situation.isRevealTurnNext());
             if(temp0.isEmpty()) temp0.addAll(temp1);
         }
-
+        System.out.println("After");
+        System.out.println(temp0.toString());
+        System.out.println();
         return temp0;
     }
 
+    // Filtering helpers //
     private void checkNotEmpty(ArrayList<Move> list0, ArrayList<Move> list1){
         if (list0.isEmpty()) list0.addAll(list1);
             else list1.clear();
         list1.addAll(list0);
     }
+
     private boolean sameDestDoubleMoves(Move m1, Move m2){
         if(getDest(m1) != getDest(m2)) return false;
         return m1.tickets().equals(m2.tickets());
@@ -254,8 +273,9 @@ public class Minimax {
         ArrayList<Move> allMoves = new ArrayList<>(situation.getAvailableMoves().asList());
         Piece currPiece = allMoves.get(0).commencedBy();
         Integer detectiveLocation = allMoves.get(0).source();
-
         ArrayList<Integer> distances = new Dijkstra(situation.getState().getSetup().graph, new ArrayList<>(Collections.singletonList(mrXLocation)), detectiveLocation, false).getDistances();
+
+        // Remove all moves made by pieces other than the first one in the list
         allMoves.removeIf(m -> !(m.commencedBy().equals(currPiece)));
 
         // Pick one of the "best" moves to investigate first
@@ -264,24 +284,13 @@ public class Minimax {
 
         allMoves.removeIf(m -> (getDest(m) != getDest(allMoves.get(0))));
 
-        // Remove moves that, if the detective can land on a possible location, don't
-        if (allMoves.stream().anyMatch(m -> situation.possibleLocations().contains(getDest(m)))) {
-            allMoves.removeIf(m -> !situation.possibleLocations().contains(getDest(m)));
+        // Remove moves that miss on the opportunity to land on one of MrX's possible locations
+        if (allMoves.stream().anyMatch(m -> situation.getPossibleLocations().contains(getDest(m)))) {
+            allMoves.removeIf(m -> !situation.getPossibleLocations().contains(getDest(m)));
         }
 
         return allMoves;
 
     }
 
-    private ArrayList<Integer> getDetectiveLocations(Situation situation) {
-        ArrayList<Integer> detectiveLocations = new ArrayList<>();
-        ArrayList<Piece> pieces = new ArrayList<>(situation.getPlayers());
-        for (Piece piece : pieces)
-            if (piece.isDetective()) {
-                Optional<Integer> location = situation.getDetectiveLocation((Piece.Detective) piece);
-                location.ifPresent(detectiveLocations::add);
-            }
-        return detectiveLocations;
-
-    }
 }
