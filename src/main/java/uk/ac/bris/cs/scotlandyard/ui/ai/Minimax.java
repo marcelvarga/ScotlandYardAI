@@ -169,9 +169,11 @@ public class Minimax {
         // temp0 is used to store the moves and to filter, temp1 is used to cache temp0 in case it is empty after a filter
         ArrayList<Move> temp0 = new ArrayList<>(situation.getAvailableMoves().asList());
         ArrayList<Move> temp1 = new ArrayList<>(temp0);
+        FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
+        FunctionalVisitor<Boolean> isSecondTicketSecretVisitor = new FunctionalVisitor<>(m -> false, m -> m.ticket2 == ScotlandYard.Ticket.SECRET);
 
         Dijkstra d = new Dijkstra(situation.getState().getSetup().graph, getDetectiveLocations(situation), mrXLocation, false);
-        FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
+
         int remainingRounds = situation.getState().getSetup().rounds.size() - situation.getState().getMrXTravelLog().size();
         System.out.println("! ! Remaining rounds! ! " + remainingRounds);
 
@@ -183,31 +185,18 @@ public class Minimax {
             // Remove DoubleMoves if there are many rounds left
             //noinspection ConstantConditions
             int doubleMovesCount = situation.getState().getPlayerTickets(MRX).orElse(null).getCount(ScotlandYard.Ticket.DOUBLE);
-            if(remainingRounds > ( doubleMovesCount / 2)) {
+            if(remainingRounds > (doubleMovesCount / 2)) {
                 temp0.removeIf(m -> (m.visit(isDoubleMoveVisitor)));
-                checkNotEmpty(temp0, temp1);
+                checkListNotEmpty(temp0, temp1);
                 }
-            // Order by possible locations then by distance from detectives
+            // Sort by possible locations then by distance from detectives
             temp0.sort(Comparator.comparingInt(move -> -situation.advance((Move) move).numPossibleLocations())
                     .thenComparingInt(move -> -d.getDistances().get(getDest((Move) move))));
-            temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 10));
+            temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() < situation.advance(temp0.get(0)).numPossibleLocations() - 4));
         } else {
-            // Order by distance from detectives then by possible locations
 
-            Comparator<Move> distanceThenLocations = (m1, m2) -> {
-
-                Integer distanceDifference = d.getDistances().get(getDest(m1)) - d.getDistances().get(getDest(m2));
-                if (distanceDifference < 0) return -1;
-                if (distanceDifference > 0) return 1;
-
-                int possibleLocationsDifference = situation.advance(m1).numPossibleLocations() - situation.advance(m2).numPossibleLocations();
-                //noinspection UseCompareMethod
-                if (possibleLocationsDifference < 0) return -1;
-                if (possibleLocationsDifference > 0) return 1;
-                return 0;
-            };
-
-            temp0.sort(distanceThenLocations);
+            // Sort by distance
+            temp0.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
 
             // Remove double moves if no detective is closer than 2 moves away from MrX
             // or that would get MrX immediately caught
@@ -215,20 +204,29 @@ public class Minimax {
             temp0.removeIf(m -> d.getDistances().get(getDest(m)) == 1);
 
         }
-        checkNotEmpty(temp0, temp1);
+        checkListNotEmpty(temp0, temp1);
 
 
-        // Remove moves that effectively waste secret tickets
         if(situation.isRevealTurnNext()) {
-            temp0.removeIf(m -> m.tickets().iterator().next() == ScotlandYard.Ticket.SECRET);
-            checkNotEmpty(temp0, temp1);
-        }
-        if(situation.isRevealTurnNextNext()) {
-            FunctionalVisitor<Boolean> isSecondTicketSecret = new FunctionalVisitor<>(m -> false, m -> m.ticket2 == ScotlandYard.Ticket.SECRET);
-            temp0.removeIf(m -> m.visit(isDoubleMoveVisitor) && m.visit(isSecondTicketSecret));
-            checkNotEmpty(temp0, temp1);
+            // Remove moves that reduce MrX's possible locations to 1
+            temp0.removeIf(m -> ((situation.advance(m).numPossibleLocations() == 1) && !m.visit(isDoubleMoveVisitor)));
+            checkListNotEmpty(temp0, temp1);
 
+            // Remove moves that effectively waste secret tickets
+            temp0.removeIf(m -> m.tickets().iterator().next() == ScotlandYard.Ticket.SECRET);
+            checkListNotEmpty(temp0, temp1);
         }
+
+        if(situation.isRevealTurnNextNext()) {
+            // Remove moves that reduce MrX's possible locations to 1
+            temp0.removeIf(m -> ((situation.advance(m).numPossibleLocations() == 1) && m.visit(isDoubleMoveVisitor)));
+            checkListNotEmpty(temp0, temp1);
+
+            // Remove moves that effectively waste secret tickets
+            temp0.removeIf(m -> m.visit(isDoubleMoveVisitor) && m.visit(isSecondTicketSecretVisitor));
+            checkListNotEmpty(temp0, temp1);
+        }
+
         // Remove duplicate double moves that use the same tickets IN ORDER and end at the same location
         int len = temp0.size();
         for (int i = 0; i < len - 1; i++)
@@ -238,24 +236,13 @@ public class Minimax {
                     j--;
                     len--;
                 }
-        checkNotEmpty(temp0, temp1);
+        checkListNotEmpty(temp0, temp1);
 
-        // Remove moves that reduce MrX's possible locations to 1 UNLESS he's going into a reveal turn
-        // Also if the move gets him stuck
-        // Even though this seems bad, using doubles on the first two reveal turns might be his comeuppance later on
-        // This is quite processing heavy, so only run if MrX is in a pickle (only 5 possibleLocations)
-        if (situation.numPossibleLocations() < 10) {
-            temp0.removeIf(m -> (situation.advance(m).numPossibleLocations() == 1) && !situation.isRevealTurnNext());
-            if(temp0.isEmpty()) temp0.addAll(temp1);
-        }
-        System.out.println("After");
-        System.out.println(temp0.toString());
-        System.out.println();
         return temp0;
     }
 
     // Filtering helpers //
-    private void checkNotEmpty(ArrayList<Move> list0, ArrayList<Move> list1){
+    private void checkListNotEmpty(ArrayList<Move> list0, ArrayList<Move> list1){
         if (list0.isEmpty()) list0.addAll(list1);
             else list1.clear();
         list1.addAll(list0);
@@ -290,7 +277,5 @@ public class Minimax {
         }
 
         return allMoves;
-
     }
-
 }
