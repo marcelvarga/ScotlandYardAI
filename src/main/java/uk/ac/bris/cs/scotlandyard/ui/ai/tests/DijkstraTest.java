@@ -33,10 +33,10 @@ public class DijkstraTest extends TestBase{
                 new GameSetup(standardGraph(), ImmutableList.of(true)),
                 mrX, blue);
 
-        Dijkstra test = new Dijkstra(state.getSetup().graph, new ArrayList<>(List.of(mrX.location())), blue.location(), true);
+        Dijkstra dijkstra = new Dijkstra(state.getSetup().graph, new ArrayList<>(List.of(mrX.location())), blue.location(), true);
 
         Multiset<Integer> distances = HashMultiset.create();
-        distances.addAll(test.getDistances());
+        distances.addAll(dijkstra.getDistances());
 
         assert(distances.count(DEFAULT_DISTANCE) > 150);
     }
@@ -48,10 +48,10 @@ public class DijkstraTest extends TestBase{
                 new GameSetup(standardGraph(), ImmutableList.of(true)),
                 mrX, blue);
 
-        Dijkstra test = new Dijkstra(state.getSetup().graph, new ArrayList<>(List.of(mrX.location())), blue.location(), false);
+        Dijkstra dijkstra = new Dijkstra(state.getSetup().graph, new ArrayList<>(List.of(mrX.location())), blue.location(), false);
 
         Multiset<Integer> distances = HashMultiset.create();
-        distances.addAll(test.getDistances());
+        distances.addAll(dijkstra.getDistances());
 
         assert(distances.count(DEFAULT_DISTANCE) == 1);
     }
@@ -64,8 +64,8 @@ public class DijkstraTest extends TestBase{
                 new GameSetup(standardGraph(), ImmutableList.of(true)),
                 mrX, blue, red);
 
-        Dijkstra test = new Dijkstra(state.getSetup().graph, new ArrayList<>(List.of(blue.location(), red.location())), mrX.location(), false);
-        ArrayList<Integer> distances = new ArrayList<>(test.getDistances());
+        Dijkstra dijkstra = new Dijkstra(state.getSetup().graph, new ArrayList<>(List.of(blue.location(), red.location())), mrX.location(), false);
+        ArrayList<Integer> distances = new ArrayList<>(dijkstra.getDistances());
         assert(distances.get(mrX.location()) == 1);
         assert(distances.get(blue.location()) == 0);
         assert(distances.get(red.location()) == 0);
@@ -80,10 +80,10 @@ public class DijkstraTest extends TestBase{
                 new GameSetup(standardGraph(), ImmutableList.of(true)),
                 mrX, blue, red);
 
-        Dijkstra test = new Dijkstra(state.getSetup().graph, new ArrayList<>(List.of(blue.location(), red.location())), mrX.location(), true);
+        Dijkstra dijkstra = new Dijkstra(state.getSetup().graph, new ArrayList<>(List.of(blue.location(), red.location())), mrX.location(), true);
 
         Multiset<Integer> distances = HashMultiset.create();
-        distances.addAll(test.getDistances());
+        distances.addAll(dijkstra.getDistances());
         assert(distances.count(DEFAULT_DISTANCE) > 150);
     }
     @Test public void testDijkstraStopsWhenOneSourceFindsTarget(){
@@ -96,9 +96,9 @@ public class DijkstraTest extends TestBase{
                 new GameSetup(standardGraph(), ImmutableList.of(true)),
                 mrX, blue, red);
 
-        Dijkstra test = new Dijkstra(state.getSetup().graph, new ArrayList<>(List.of(blue.location(), red.location())), mrX.location(), true);
+        Dijkstra dijkstra = new Dijkstra(state.getSetup().graph, new ArrayList<>(List.of(blue.location(), red.location())), mrX.location(), true);
 
-        ArrayList<Integer> distances = new ArrayList<>(test.getDistances());
+        ArrayList<Integer> distances = new ArrayList<>(dijkstra.getDistances());
         Multiset<Integer> distancesSet = HashMultiset.create();
         distancesSet.addAll(distances);
 
