@@ -43,32 +43,32 @@ public class Situation{
         this.isRevealTurn = isRevealTurn();
     }
 
+    // Returns a set of possible locations based on current board positions
+    // Used when initializing a situation
     private LinkedHashSet<Integer> computePossibleLocations() {
 
         ImmutableList<Boolean> round = state.getSetup().rounds;
         int lastReveal = round.subList(0, currentRound).lastIndexOf(true);
-        LinkedHashSet<Integer> output;
+        LinkedHashSet<Integer> possibleLocations;
+
         // If no reveal turn has occurred yet
         if (lastReveal == -1) {
-            output = new LinkedHashSet<>(List.of(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
+            // Set possible locations to the game's default
+            possibleLocations = new LinkedHashSet<>(List.of(35, 45, 51, 71, 78, 104, 106, 127, 132, 166, 170, 172));
             lastReveal = 0;
         } else {
-            output = new LinkedHashSet<>((List.of(state.getMrXTravelLog().get(lastReveal).location().orElse(0))));
+            possibleLocations = new LinkedHashSet<>((List.of(state.getMrXTravelLog().get(lastReveal).location().orElse(0))));
         }
 
         LinkedHashSet<Integer> someLocations = new LinkedHashSet<>();
 
+        // Work forward from the last reveal turn, computing possible locations as it goes using mrX's log
         for (LogEntry l : state.getMrXTravelLog().subList(lastReveal, state.getMrXTravelLog().size())) {
-            for (Integer location : output)
+            for (Integer location : possibleLocations)
                 someLocations.addAll(getSingleMovesWithTicket(location, l.ticket()));
-            output.addAll(someLocations);
+            possibleLocations.addAll(someLocations);
         }
-
-        return output;
-    }
-
-    public int numPossibleLocations() {
-        return possibleLocations.size();
+        return possibleLocations;
     }
 
     // Update possibleLocations based on ticket
@@ -137,11 +137,16 @@ public class Situation{
         return output;
     }
 
+    public int numPossibleLocations() {
+        return possibleLocations.size();
+    }
+
     // Used for testing
     public ArrayList<Integer> getPossibleLocations() {
         return new ArrayList<>(possibleLocations);
     }
 
+    // Helper methods //
     private boolean isRevealTurn() {
         if(currentRound == state.getSetup().rounds.size()) return false;
         return state.getSetup().rounds.get(currentRound);
