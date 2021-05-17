@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-// Helper class that stores previously seen mrX - detective arrangements and returns distances
+@SuppressWarnings("UnstableApiUsage")
+
+// Helper class that stores previously seen mrX - detective arrangements and maps them to distances
 public class DijkstraCache {
     Map<ArrayList<Integer>, Integer> transpositionTable;
 

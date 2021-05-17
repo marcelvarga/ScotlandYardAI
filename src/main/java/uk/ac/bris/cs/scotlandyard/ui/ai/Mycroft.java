@@ -1,7 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
@@ -22,6 +21,8 @@ public class Mycroft implements Ai {
 
     long startTime;
     long maxTime;
+    MoveCache moveCache = new MoveCache();
+
     @Nonnull
     @Override
     public Move pickMove(
@@ -38,12 +39,9 @@ public class Mycroft implements Ai {
 
         startTime = System.currentTimeMillis();
         this.maxTime = maxTime;
-        // Guess the best move
-        // Currently picks one at random
-        var moves = situation.getAvailableMoves().asList();
 
         // Set a random move to start off with
-        Move placeholderMove = moves.get(new Random().nextInt(moves.size()));
+        Move placeholderMove = new Minimax(maxTime).filterMrXMoves(situation, mrXLocation).get(0);
         int placeholderScore = new Minimax(maxTime).score(situation.advance(placeholderMove), mrXLocation);
 
         // Calculate the best first move with a depth 1
@@ -55,11 +53,11 @@ public class Mycroft implements Ai {
 
         // Use iterative deepening
         for (int depth = 2; depth <= maxDepth && !timeIsUp(); depth++) {
-            System.out.println("Depth: " + depth);
             move = mtd_f(situation, depth, mrXLocation, bestMove, bestScore);
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
             score = new Minimax(maxTime - elapsedTime).score(situation.advance(move), mrXLocation);
 
+            // Update bestMove and bestScore if the move generated is better
             if (bestScore < score) {
                 bestMove = move;
                 bestScore = score;
@@ -69,23 +67,25 @@ public class Mycroft implements Ai {
         return bestMove;
     }
 
-    private Move alphaBetaMemorise(Situation situation, int depth, int alpha, int beta, int mrXLocation) {
+    private Move alphaBetaStarter(Situation situation, int depth, int alpha, int beta, int mrXLocation) {
         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
         Minimax minimax = new Minimax(maxTime - elapsedTime);
+
         ArrayList<Move> filteredMoves = minimax.filterMrXMoves(situation, mrXLocation);
         Move bestMove = filteredMoves.get(0);
-
         int bestScore = minimax.score(situation.advance(bestMove), mrXLocation);
+
         int score;
 
+        // For every move, get the best score from the situation
         for (Move move : filteredMoves) {
             elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-            score = new Minimax(maxTime - elapsedTime ).searchBestScore(situation.advance(move), depth-1, alpha, beta, true, mrXLocation);
+            //score = new Minimax(maxTime - elapsedTime ).searchBestScore(situation.advance(move), depth-1, alpha, beta, true, mrXLocation);
+            score = moveCache.getScore(situation, move, depth-1, alpha, beta, mrXLocation, maxTime, elapsedTime);
             alpha = max(alpha, score);
 
             // If the score is better, set the move as the best one
             if (score > bestScore) {
-                System.out.println("Found better move with score: " + score);
                 bestScore = score;
                 bestMove = move;
 
@@ -104,10 +104,13 @@ public class Mycroft implements Ai {
 
         while (floor < ceiling) {
             beta = max(bestScore, floor + 1);
-            bestMove = alphaBetaMemorise(situation, depth, beta - 1, beta, mrXLocation);
             long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+
+            // Perform a null-window search on the current situation
+            bestMove = alphaBetaStarter(situation, depth, beta - 1, beta, mrXLocation);
             bestScore = new Minimax(maxTime - elapsedTime).score(situation.advance(bestMove), mrXLocation);
 
+            // Change the bounds based on the outcome
             if (bestScore < beta) {
                 ceiling = bestScore;
             } else {
@@ -117,11 +120,8 @@ public class Mycroft implements Ai {
         return bestMove;
     }
 
+    // Returns true if time's nearly up
     private boolean timeIsUp(){
-        long elapsedTime = System.currentTimeMillis() - startTime;
-        System.out.println("Elapsed time:" + elapsedTime + ", maximum time: " + ((maxTime - 5) * 1000));
-        System.out.println(((elapsedTime > (maxTime - 5) * 1000)));
-        System.out.println();
-        return (elapsedTime > (maxTime - 5) * 1000);
+        return (System.currentTimeMillis() - startTime > (maxTime - 5) * 1000);
     }
 }
