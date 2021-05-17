@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+// Helper class that stores previously seen mrX - detective arrangements and returns distances
 public class DijkstraCache {
     Map<ArrayList<Integer>, Integer> transpositionTable;
 
@@ -18,12 +19,13 @@ public class DijkstraCache {
         playerLocations.add(mrXLocation);
         int distance;
 
+        // If the configuration was not seen before make a new Dijkstra call
         if (!transpositionTable.containsKey(playerLocations)) {
 
             distance = new Dijkstra(state.getSetup().graph, detectiveLocations, mrXLocation, false).getDistToDestination();
             transpositionTable.put(playerLocations, distance);
         }
-        else
+        else // Fetch the distance from the table
             distance = transpositionTable.get(playerLocations);
 
         return distance;
