@@ -21,8 +21,10 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.TAXI;
 
 public class Situation{
     Board.GameState state;
+
     // Used to prevent duplicates
     LinkedHashSet<Integer> possibleLocations;
+
     int currentRound;
     boolean isRevealTurn;
 
@@ -43,6 +45,7 @@ public class Situation{
     }
 
     private LinkedHashSet<Integer> computePossibleLocations() {
+
         ImmutableList<Boolean> round = state.getSetup().rounds;
         int lastReveal = round.subList(0, currentRound).lastIndexOf(true);
         LinkedHashSet<Integer> output;
@@ -65,10 +68,6 @@ public class Situation{
         if (output.size() == 0) exit(0);
 
         return output;
-    }
-
-    public ArrayList<Integer> possibleLocations() {
-        return new ArrayList<>(possibleLocations);
     }
 
     public int numPossibleLocations() {
@@ -105,7 +104,6 @@ public class Situation{
         }
     }
 
-
     // Only used if MrX uses the ticket
     private LinkedHashSet<Integer> getPossibleLocationsWithTicket(ScotlandYard.Ticket ticket) {
         LinkedHashSet<Integer> output = new LinkedHashSet<>();
@@ -116,7 +114,6 @@ public class Situation{
         }
         return output;
     }
-
     private ArrayList<Integer> getSingleMovesWithTicket(int source, ScotlandYard.Ticket ticket) {
         ArrayList<Integer> output = new ArrayList<>();
         GameSetup setup = state.getSetup();
@@ -143,11 +140,17 @@ public class Situation{
         return output;
     }
 
-    public Boolean getIsRevealTurn() { return isRevealTurn; }
+    // Used for testing
+    public ArrayList<Integer> getPossibleLocations() {
+        return new ArrayList<>(possibleLocations);
+    }
 
+    // Helper functions //
+    public Boolean getIsRevealTurn() { return isRevealTurn; }
     private boolean isRevealTurn() {
         if(currentRound == state.getSetup().rounds.size()) return false;
-        return state.getSetup().rounds.get(currentRound);}
+        return state.getSetup().rounds.get(currentRound);
+    }
     public boolean isRevealTurnNext(){
         if(currentRound == state.getSetup().rounds.size() - 1) return false;
         return state.getSetup().rounds.get(currentRound+1);

@@ -44,7 +44,7 @@ public class SituationTest extends TestBase {
         Situation s = new Situation(state);
         s = s.advance(new Move.SingleMove(MRX, 166, ScotlandYard.Ticket.TAXI, 183));
 
-        assert(s.possibleLocations().containsAll(Arrays.asList(
+        assert(s.getPossibleLocations().containsAll(Arrays.asList(
                 22, 32, 36, 38, 39, 46, 48, 52, 55, 58, 59, 60, 61, 65, 67, 68, 70, 72, 77, 79, 86, 89, 97, 105, 107, 114, 115, 116, 126, 128, 133, 134, 140, 151, 153, 157, 159, 181, 183, 185, 187
         )));
     }
@@ -58,7 +58,7 @@ public class SituationTest extends TestBase {
         Situation s = new Situation(state);
         s = s.advance(new Move.DoubleMove(MRX, 166, ScotlandYard.Ticket.TAXI, 153, ScotlandYard.Ticket.UNDERGROUND,163));
 
-        assert(s.possibleLocations().containsAll(Arrays.asList(
+        assert(s.getPossibleLocations().containsAll(Arrays.asList(
                 1, 13, 46, 67, 74, 79, 89, 93, 111, 128, 140, 153, 163, 185
         )));
     }
@@ -72,7 +72,7 @@ public class SituationTest extends TestBase {
         Situation s = new Situation(state);
         s = s.advance(new Move.SingleMove(MRX, 132, ScotlandYard.Ticket.SECRET, 114));
 
-        assert(s.possibleLocations().containsAll(Arrays.asList(
+        assert(s.getPossibleLocations().containsAll(Arrays.asList(
                 114, 140
         )));
     }
@@ -88,8 +88,8 @@ public class SituationTest extends TestBase {
         s = s.advance(new Move.SingleMove(BLUE, 156, ScotlandYard.Ticket.TAXI, 157));
         s = s.advance(new Move.SingleMove(MRX, 163, ScotlandYard.Ticket.UNDERGROUND, 153));
 
-        System.out.println(s.possibleLocations());
+        System.out.println(s.getPossibleLocations());
 
-        assert(s.possibleLocations().contains(153));
+        assert(s.getPossibleLocations().contains(153));
     }
 }
