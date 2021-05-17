@@ -23,15 +23,30 @@ public class Minimax {
     final int plusInfinity = +10000000;
     Move bestMove;
     int verifiedMoves = 0;
-    Long maxTime;
-    Long startTime;
+    long maxTime;
+    long startTime;
     DijkstraCache dijkstraCache;
     boolean mrXIsCaller;
     private int maxDepth;
 
-    Minimax() {
+    Minimax(long maxTime) {
         this.dijkstraCache = new DijkstraCache();
         this.startTime = System.currentTimeMillis();
+        this.maxTime = maxTime;
+    }
+
+    public Move getBestMove(Situation situation, int steps, int mrXLocation, boolean mrXIsCaller) {
+        this.steps = steps;
+        this.mrXIsCaller = mrXIsCaller;
+        searchBestScore(situation, steps, minusInfinity, plusInfinity, mrXIsCaller, mrXLocation);
+        System.out.println("--------------------------------------- New call --------------------------------------------------------------------");
+        System.out.println("MrX's location is: " + getDest(bestMove));
+        System.out.println("Minimum distance to MrX is: " + dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), getDest(bestMove)));
+        System.out.println("Number of verified moves: " + verifiedMoves);
+        System.out.println("Looking " + maxDepth + " steps ahead");
+        System.out.printf("Time elapsed: %.3f seconds%n", ((System.currentTimeMillis() - startTime) / (float) 1000));
+        System.out.println("Possible locations: " + situation.numPossibleLocations());
+        return bestMove;
     }
 
     public int searchBestScore(Situation situation, int depth, int alpha, int beta, boolean isMrX, int mrXLocation) {
@@ -122,34 +137,26 @@ public class Minimax {
 
         double[] multipliers =
                 //TAXI, BUS, UNDERGROUND, SECRET, DOUBLE
-                {  1  ,  2 ,     4      ,  10   ,   12  };
+                {  1  ,  2 ,      4     ,  15   ,   20  };
 
         int score = 0;
+
         for (int i = 0; i < 5; i++) {
-            assert tickets.orElse(null) != null;
+            //noinspection ConstantConditions
             int num = tickets.orElse(null).getCount(ScotlandYard.Ticket.values()[i]);
+
             // A hefty penalty is applied when MrX runs out of a ticket type
-            if (num == 0) score -= 200;
-            else score += multipliers[i] * num;
+            if(score == 1) score -= 15 * multipliers[i];
+            else if(score == 0) score -= 25 * multipliers[i];
+
+            // SECRET is 3, DOUBLE is 4
+            if(i == 3 || i == 4) score += num * multipliers[i];
+
         }
 
         return score;
     }
 
-    public Move getBestMove(Situation situation, int steps, int mrXLocation, Long maxTime, boolean mrXIsCaller) {
-        this.maxTime = maxTime;
-        this.steps = steps;
-        this.mrXIsCaller = mrXIsCaller;
-        searchBestScore(situation, steps, minusInfinity, plusInfinity, mrXIsCaller, mrXLocation);
-        System.out.println("--------------------------------------- New call --------------------------------------------------------------------");
-        System.out.println("MrX's location is: " + getDest(bestMove));
-        System.out.println("Minimum distance to MrX is: " + dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), getDest(bestMove)));
-        System.out.println("Number of verified moves: " + verifiedMoves);
-        System.out.println("Looking " + maxDepth + " steps ahead");
-        System.out.printf("Time elapsed: %.3f seconds%n", ((System.currentTimeMillis() - startTime) / (float) 1000));
-        System.out.println("Possible locations: " + situation.numPossibleLocations());
-        return bestMove;
-    }
 
     private int getDest(Move move) {
         return move.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2));
@@ -166,7 +173,7 @@ public class Minimax {
         return true;
     }
 
-    private ArrayList<Move> filterMrXMoves(Situation situation, int mrXLocation) {
+    public ArrayList<Move> filterMrXMoves(Situation situation, int mrXLocation) {
         ArrayList<Move> temp0 = new ArrayList<>(situation.getAvailableMoves().asList());
         ArrayList<Move> temp1 = new ArrayList<>(temp0);
 

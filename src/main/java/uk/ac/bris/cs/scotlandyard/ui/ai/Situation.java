@@ -3,16 +3,14 @@ package uk.ac.bris.cs.scotlandyard.ui.ai;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import uk.ac.bris.cs.scotlandyard.model.*;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 import static java.lang.System.exit;
-import static java.lang.System.setOut;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.SECRET;
+import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.TAXI;
 
 @SuppressWarnings("UnstableApiUsage")
 
@@ -39,7 +37,7 @@ public class Situation{
     // Used when advancing a situation
     public Situation(Board.GameState state, LinkedHashSet<Integer> possibleLocations) {
         this.state = state;
-        this.currentRound = state.getMrXTravelLog().size();
+        this.currentRound = state.getMrXTravelLog().size() - 1;
         this.possibleLocations = possibleLocations;
         this.isRevealTurn = isRevealTurn();
     }
@@ -88,7 +86,7 @@ public class Situation{
     }
 
     private LinkedHashSet<Integer> getPossibleLocationsWithMove(Move move) {
-        LinkedHashSet<Integer> input = this.possibleLocations;
+        LinkedHashSet<Integer> allPossibleLocations = this.possibleLocations;
 
         if(move.commencedBy() == MRX) {
 
@@ -102,8 +100,8 @@ public class Situation{
             return getPossibleLocationsWithTicket(Iterables.get(move.tickets(), 0));
 
         } else {
-            input.remove(move.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
-            return input;
+            allPossibleLocations.remove(move.visit(new Move.FunctionalVisitor<>(m -> m.destination, m -> m.destination2)));
+            return allPossibleLocations;
         }
     }
 
@@ -111,11 +109,11 @@ public class Situation{
     // Only used if MrX uses the ticket
     private LinkedHashSet<Integer> getPossibleLocationsWithTicket(ScotlandYard.Ticket ticket) {
         LinkedHashSet<Integer> output = new LinkedHashSet<>();
+        if(numPossibleLocations() == 200 && ticket == TAXI)  return this.possibleLocations;
 
         for (Integer location : this.possibleLocations) {
             output.addAll(getSingleMovesWithTicket(location, ticket));
         }
-
         return output;
     }
 
@@ -155,7 +153,7 @@ public class Situation{
         return state.getSetup().rounds.get(currentRound+1);
     }
 
-    // Wrapping GameState part //
+    // Wrapping GameState //
     public Situation advance(Move move) {
         // If the move is a doubleMove, update in parts
         if (move.visit(new Move.FunctionalVisitor<>(m -> false, m -> true))) {
