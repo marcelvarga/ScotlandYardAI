@@ -30,7 +30,7 @@ public class Mycroft implements Ai {
             Pair<Long, TimeUnit> timeoutPair) {
 
         var moves = board.getAvailableMoves().asList();
-        return getBestMove(new Situation((Board.GameState) board), 3, moves.get(0).source(), timeoutPair.left());
+        return getBestMove(new Situation((Board.GameState) board), 4, moves.get(0).source(), timeoutPair.left());
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -87,9 +87,6 @@ public class Mycroft implements Ai {
             if (score > bestScore) {
                 bestScore = score;
                 bestMove = move;
-
-                // Add memory in here
-
             }
         }
 

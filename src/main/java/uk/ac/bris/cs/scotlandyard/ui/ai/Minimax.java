@@ -97,11 +97,12 @@ public class Minimax {
 
     public int score(Situation situation, int mrXLocation) {
         int distanceToMrX = dijkstraCache.getDistance(situation.getState(), getDetectiveLocations(situation), mrXLocation);
+        //noinspection IntegerDivisionInFloatingPointContext
         return (int) (
                 50 * distanceFactor(distanceToMrX) +
                 0.5 * situation.getAvailableMoves().size() +
                 0.1 * ticketFactor(situation) +
-                10 * Math.pow(situation.numPossibleLocations(), 0.7) +
+                Math.pow(50, 1-1/((situation.numPossibleLocations()+1))) +
 
                 //Apply massive penalty if MrX could be caught
                 ((distanceToMrX == 1) ? minusInfinity: 0));
@@ -170,7 +171,7 @@ public class Minimax {
         ArrayList<Move> temp0 = new ArrayList<>(situation.getAvailableMoves().asList());
         ArrayList<Move> temp1 = new ArrayList<>(temp0);
         FunctionalVisitor<Boolean> isDoubleMoveVisitor = new FunctionalVisitor<>(m -> false, m -> true);
-        FunctionalVisitor<Boolean> isSecondTicketSecretVisitor = new FunctionalVisitor<>(m -> false, m -> m.ticket2 == ScotlandYard.Ticket.SECRET);
+        FunctionalVisitor<Boolean> isAnyTicketSecretVisitor = new FunctionalVisitor<>(m -> m.ticket == ScotlandYard.Ticket.SECRET, m -> m.ticket1 == ScotlandYard.Ticket.SECRET);
 
         Dijkstra d = new Dijkstra(situation.getState().getSetup().graph, getDetectiveLocations(situation), mrXLocation, false);
 
@@ -205,7 +206,6 @@ public class Minimax {
         }
         checkListNotEmpty(temp0, temp1);
 
-
         if(situation.isRevealTurnNext()) {
             // Remove moves that reduce MrX's possible locations to 1
             temp0.removeIf(m -> ((situation.advance(m).numPossibleLocations() == 1) && !m.visit(isDoubleMoveVisitor)));
@@ -222,7 +222,7 @@ public class Minimax {
             checkListNotEmpty(temp0, temp1);
 
             // Remove moves that effectively waste secret tickets
-            temp0.removeIf(m -> m.visit(isDoubleMoveVisitor) && m.visit(isSecondTicketSecretVisitor));
+            temp0.removeIf(m -> m.visit(isDoubleMoveVisitor) && m.visit(isAnyTicketSecretVisitor));
             checkListNotEmpty(temp0, temp1);
         }
 
@@ -235,7 +235,19 @@ public class Minimax {
                     j--;
                     len--;
                 }
-        checkListNotEmpty(temp0, temp1);
+
+
+        // When there are too many moves left, reduce!
+        if (temp0.size() > 10) {
+            // Remove moves that don't have the optimum distance or near the optimum possible positions
+            temp0.sort(Comparator.comparingInt(move -> -d.getDistances().get(getDest(move))));
+            int largestDistance = d.getDistances().get(getDest(temp0.get(0)));
+            temp0.removeIf(m -> d.getDistances().get(getDest(m)) < largestDistance);
+
+            Comparator<Move> comp = Comparator.comparingDouble(m -> situation.advance(m).numPossibleLocations());
+            int largestPossibleLocations = situation.advance(Collections.max(temp0, comp)).numPossibleLocations();
+            temp0.removeIf(m -> situation.advance(m).numPossibleLocations() < largestPossibleLocations - 3);
+        }
 
         return temp0;
     }
