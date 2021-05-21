@@ -7,7 +7,7 @@ import java.util.Map;
 
 // Helper class that stores previously seen moves and maps them to scores
 public class MoveCache {
-    Map<Move, Integer> transpositionTable;
+    Map<Situation, Map<Move, Integer>> transpositionTable;
 
     MoveCache() {
         transpositionTable = new HashMap<>();
@@ -18,14 +18,16 @@ public class MoveCache {
         int score;
 
         // If the configuration was not seen before make a new Move call
-        if (!transpositionTable.containsKey(move)) {
-
+        if (!transpositionTable.containsKey(situation) || !transpositionTable.get(situation).containsKey(move)) {
             score = new Minimax(maxTime - elapsedTime ).searchBestScore(situation.advance(move), depth-1, alpha, beta, true, mrXLocation);
-            transpositionTable.put(move, score);
-        }
-        else // Fetch the score from the table
-            score = transpositionTable.get(move);
+            HashMap<Move, Integer> tempMap = new HashMap<>();
+            tempMap.put(move, score);
+            transpositionTable.put(situation, tempMap);
 
+        // Fetch the score from the table
+        } else {
+            score = transpositionTable.get(situation).get(move);
+        }
         return score;
     }
 }

@@ -87,6 +87,8 @@ public class Mycroft implements Ai {
             if (score > bestScore) {
                 bestScore = score;
                 bestMove = move;
+
+                if (bestScore >= beta) return bestMove;
             }
         }
 
