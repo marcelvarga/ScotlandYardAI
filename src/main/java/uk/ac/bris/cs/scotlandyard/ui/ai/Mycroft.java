@@ -80,7 +80,7 @@ public class Mycroft implements Ai {
         // For every move, get the best score from the situation
         for (Move move : filteredMoves) {
             elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-            score = moveCache.getScore(situation, move, depth-1, alpha, beta, mrXLocation, maxTime, elapsedTime);
+            score = moveCache.getScore(situation, move, depth, alpha, beta, mrXLocation, maxTime, elapsedTime);
             alpha = max(alpha, score);
 
             // If the score is better, set the move as the best one
